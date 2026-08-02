@@ -7,10 +7,24 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
+
+// 1. Render üzerinde 'uploads' klasörü yoksa otomatik oluştur
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
 const upload = multer({ dest: 'uploads/' });
 
 app.use(express.json());
-app.use(express.static('public'));
+
+// Statik dosyaları (index.html, css vs.) dışarıya sun
+app.use(express.static(__dirname));
+
+// Kök adrese (/) gelindiğinde doğrudan index.html gönder
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 // Groq Whisper API ile Sesi Metne Çevirme
 async function transcribeAudio(filePath) {
@@ -72,13 +86,9 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
     const originalText = req.body.originalText;
     const audioPath = req.file.path;
 
-    // 1. Sesi Metne Çevir (STT)
     const transcribedText = await transcribeAudio(audioPath);
-
-    // 2. Metinleri Kıyasla (LLM)
     const result = await analyzeRecitation(originalText, transcribedText);
 
-    // Geçici ses dosyasını sil
     fs.unlinkSync(audioPath);
 
     res.json({ success: true, data: result });
@@ -88,5 +98,5 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
