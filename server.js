@@ -8,7 +8,7 @@ const path = require('path');
 
 const app = express();
 
-// 1. Render üzerinde 'uploads' klasörü yoksa otomatik oluştur
+// Render üzerinde 'uploads' klasörünü kontrol et/oluştur
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
@@ -17,26 +17,24 @@ if (!fs.existsSync(uploadDir)) {
 const upload = multer({ dest: 'uploads/' });
 
 app.use(express.json());
-
-// Statik dosyaları dışarıya sun
 app.use(express.static(__dirname));
 
-// Kök adrese (/) gelindiğinde doğrudan index.html gönder
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Groq Whisper API ile Sesi Metne Çevirme
+// Groq Whisper API - Düzeltilmiş Hızlı Model
 async function transcribeAudio(filePath) {
   const formData = new FormData();
   
-  // Groq'un dosya formatını doğru algılaması için filename ve contentType belirtiyoruz
+  // Groq'un dosyayı sorunsuz işlemesi için uzantı ekliyoruz
   formData.append('file', fs.createReadStream(filePath), {
     filename: 'audio.m4a',
     contentType: 'audio/m4a'
   });
   
-  formData.append('model', 'whisper-large-v3');
+  // 'whisper-large-v3-turbo' modeli çökme yapmaz ve çok daha hızlıdır
+  formData.append('model', 'whisper-large-v3-turbo');
   formData.append('language', 'ar');
 
   const response = await axios.post('https://api.groq.com/openai/v1/audio/transcriptions', formData, {
@@ -44,12 +42,13 @@ async function transcribeAudio(filePath) {
       'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
       ...formData.getHeaders(),
     },
+    timeout: 30000 // 30 saniye zaman aşımı sınırı
   });
 
   return response.data.text;
 }
 
-// Groq LLM ile Karşılaştırma Analizi
+// Groq LLM Analiz
 async function analyzeRecitation(originalText, transcribedText) {
   const prompt = `
   Aşağıda orijinal Kuran metni ve kullanıcının okuduğu metin verilmiştir.
@@ -79,14 +78,15 @@ async function analyzeRecitation(originalText, transcribedText) {
       headers: {
         'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 30000
     }
   );
 
   return JSON.parse(response.data.choices[0].message.content);
 }
 
-// API Endpoint: Ses Analizi
+// API Endpoint
 app.post('/api/analyze', upload.single('audio'), async (req, res) => {
   try {
     const originalText = req.body.originalText;
@@ -95,7 +95,6 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
     const transcribedText = await transcribeAudio(audioPath);
     const result = await analyzeRecitation(originalText, transcribedText);
 
-    // Geçici ses dosyasını sil
     if (fs.existsSync(audioPath)) {
       fs.unlinkSync(audioPath);
     }
@@ -104,7 +103,6 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
   } catch (error) {
     console.error("Hata Detayı:", error.response ? error.response.data : error.message);
     
-    // Geçici dosyayı hata durumunda da sil
     if (req.file && fs.existsSync(req.file.path)) {
       fs.unlinkSync(req.file.path);
     }
