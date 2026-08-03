@@ -18,7 +18,7 @@ const upload = multer({ dest: 'uploads/' });
 
 app.use(express.json());
 
-// Statik dosyaları (index.html, css vs.) dışarıya sun
+// Statik dosyaları dışarıya sun
 app.use(express.static(__dirname));
 
 // Kök adrese (/) gelindiğinde doğrudan index.html gönder
@@ -29,7 +29,13 @@ app.get('/', (req, res) => {
 // Groq Whisper API ile Sesi Metne Çevirme
 async function transcribeAudio(filePath) {
   const formData = new FormData();
-  formData.append('file', fs.createReadStream(filePath));
+  
+  // Groq'un dosya formatını doğru algılaması için filename ve contentType belirtiyoruz
+  formData.append('file', fs.createReadStream(filePath), {
+    filename: 'audio.m4a',
+    contentType: 'audio/m4a'
+  });
+  
   formData.append('model', 'whisper-large-v3');
   formData.append('language', 'ar');
 
@@ -89,11 +95,20 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
     const transcribedText = await transcribeAudio(audioPath);
     const result = await analyzeRecitation(originalText, transcribedText);
 
-    fs.unlinkSync(audioPath);
+    // Geçici ses dosyasını sil
+    if (fs.existsSync(audioPath)) {
+      fs.unlinkSync(audioPath);
+    }
 
     res.json({ success: true, data: result });
   } catch (error) {
-    console.error(error);
+    console.error("Hata Detayı:", error.response ? error.response.data : error.message);
+    
+    // Geçici dosyayı hata durumunda da sil
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    
     res.status(500).json({ success: false, message: 'حدث خطأ أثناء المعالجة' });
   }
 });
