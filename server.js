@@ -44,25 +44,33 @@ async function transcribeAudio(filePath) {
       'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
       ...formData.getHeaders(),
     },
-    timeout: 60000 // Timeout süresi 60 saniyeye çıkarıldı
+    timeout: 60000
   });
 
   return response.data.text;
 }
 
-// Groq LLM Analiz
+// Groq LLM Analiz - Ezber ve Yavaş Okumaya Hoşgörülü Prompt
 async function analyzeRecitation(originalText, transcribedText) {
   const prompt = `
-  Aşağıda orijinal Kuran metni ve kullanıcının okuduğu metin verilmiştir.
+  Aşağıda orijinal Kuran metni ve kullanıcının ezberden okuduğu metin verilmiştir.
   İki metni karşılaştır ve analizi YALNIZCA geçerli bir JSON formatında döndür. Başka hiçbir açıklama yazma.
+
+  ÖNEMLİ DEĞERLENDİRME KURALLARI:
+  1. Kullanıcı ezber okuduğu için YAVAŞ OKUYABİLİR veya HATIRLAMAK İÇİN DURAKSAYABİLİR. Duraksamaları veya yavaşlamaları kesinlikle HATA OLARAK SAYMA.
+  2. Kullanıcı bir kelimeyi takılıp TEKRAR ETMİŞSE, en son doğru söylediğini kabul et ve tekrarı HATA SAYMA.
+  3. Yalnızca şu durumları hata say:
+     - Kelimeyi tamamen ATLAMAK / OKUMAMAK (Eksik kelime).
+     - Kelimeyi yanliş bir kelime ile DEĞİŞTİRMEK.
+  4. Puanlamada tolerant ol; küçük şive/telaffuz farklarında puan kırma.
 
   JSON Formatı:
   {
     "accuracy_percentage": 0-100 arası sayı,
     "transcribed_text": "okunan metin",
     "original_text": "orijinal metin",
-    "missing_or_wrong_words": ["hatalı veya eksik kelimelerin listesi"],
-    "feedback_ar": "Arapça olarak kullanıcıya kısa değerlendirme ve tavsiye"
+    "missing_or_wrong_words": ["yalnızca gerçekten hatalı veya tamamen eksik kelimelerin listesi"],
+    "feedback_ar": "Arapça olarak kullanıcıya tecvid ve ezber başarısı hakkında yapıcı, moral verici değerlendirme"
   }
 
   Orijinal Metin: ${originalText}
