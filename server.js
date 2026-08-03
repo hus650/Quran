@@ -8,13 +8,21 @@ const path = require('path');
 
 const app = express();
 
-// Render üzerinde 'uploads' klasörünü kontrol et/oluştur
 const uploadDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir);
 }
 
-const upload = multer({ dest: 'uploads/' });
+// Yüklenen dosyaları doğru uzantı ile kaydet
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '.wav')
+  }
+});
+const upload = multer({ storage: storage });
 
 app.use(express.json());
 app.use(express.static(__dirname));
@@ -23,17 +31,11 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Groq Whisper API - Düzeltilmiş Hızlı Model
+// Groq Whisper API - Optimize Edilmiş
 async function transcribeAudio(filePath) {
   const formData = new FormData();
   
-  // Groq'un dosyayı sorunsuz işlemesi için uzantı ekliyoruz
-  formData.append('file', fs.createReadStream(filePath), {
-    filename: 'audio.m4a',
-    contentType: 'audio/m4a'
-  });
-  
-  // 'whisper-large-v3-turbo' modeli çökme yapmaz ve çok daha hızlıdır
+  formData.append('file', fs.createReadStream(filePath));
   formData.append('model', 'whisper-large-v3-turbo');
   formData.append('language', 'ar');
 
@@ -42,7 +44,7 @@ async function transcribeAudio(filePath) {
       'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
       ...formData.getHeaders(),
     },
-    timeout: 30000 // 30 saniye zaman aşımı sınırı
+    timeout: 60000 // Timeout süresi 60 saniyeye çıkarıldı
   });
 
   return response.data.text;
@@ -79,7 +81,7 @@ async function analyzeRecitation(originalText, transcribedText) {
         'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
         'Content-Type': 'application/json'
       },
-      timeout: 30000
+      timeout: 60000
     }
   );
 
@@ -88,9 +90,14 @@ async function analyzeRecitation(originalText, transcribedText) {
 
 // API Endpoint
 app.post('/api/analyze', upload.single('audio'), async (req, res) => {
+  let audioPath = null;
   try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Ses dosyası alınamadı' });
+    }
+
     const originalText = req.body.originalText;
-    const audioPath = req.file.path;
+    audioPath = req.file.path;
 
     const transcribedText = await transcribeAudio(audioPath);
     const result = await analyzeRecitation(originalText, transcribedText);
@@ -103,8 +110,8 @@ app.post('/api/analyze', upload.single('audio'), async (req, res) => {
   } catch (error) {
     console.error("Hata Detayı:", error.response ? error.response.data : error.message);
     
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+    if (audioPath && fs.existsSync(audioPath)) {
+      fs.unlinkSync(audioPath);
     }
     
     res.status(500).json({ success: false, message: 'حدث خطأ أثناء المعالجة' });
