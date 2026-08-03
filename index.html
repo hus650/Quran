@@ -99,6 +99,30 @@
             margin-bottom: 25px;
         }
 
+        .toggle-btn-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 8px;
+        }
+
+        .btn-toggle-text {
+            background-color: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+            padding: 6px 14px;
+            font-size: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-text:hover {
+            background-color: #e5e7eb;
+        }
+
         .quran-box {
             background-color: #fdfbf7;
             border: 2px solid #f3ebe0;
@@ -111,15 +135,14 @@
             overflow-y: auto;
             word-spacing: 4px;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: filter 0.3s ease, opacity 0.3s ease;
         }
 
-        .quran-box::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .quran-box::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
+        /* Ezber için bulanıklık efekti */
+        .quran-box.blurred {
+            filter: blur(8px);
+            user-select: none;
+            opacity: 0.6;
         }
 
         .controls {
@@ -272,7 +295,12 @@
     </div>
 
     <div class="quran-container">
-        <div class="quran-box" id="quranText">
+        <div class="toggle-btn-container">
+            <button class="btn-toggle-text" onclick="toggleTextVisibility()">
+                <span id="eyeIcon">👁️</span> <span id="toggleText">إظهار النص</span>
+            </button>
+        </div>
+        <div class="quran-box blurred" id="quranText">
             الرجاء اختيار سورة من القائمة أعلاه لبدء العرض والتسميع...
         </div>
     </div>
@@ -314,6 +342,26 @@
     let mediaRecorder;
     let audioChunks = [];
     let currentSurahText = "";
+    let isTextVisible = false;
+
+    // Metni gizleme / gösterme butonu
+    function toggleTextVisibility() {
+        const quranBox = document.getElementById('quranText');
+        const eyeIcon = document.getElementById('eyeIcon');
+        const toggleText = document.getElementById('toggleText');
+
+        isTextVisible = !isTextVisible;
+
+        if (isTextVisible) {
+            quranBox.classList.remove('blurred');
+            eyeIcon.innerText = '🙈';
+            toggleText.innerText = 'إخفاء النص';
+        } else {
+            quranBox.classList.add('blurred');
+            eyeIcon.innerText = '👁️';
+            toggleText.innerText = 'إظهار النص';
+        }
+    }
 
     // Surah listesini API'den yükle
     async function loadSurahs() {
@@ -341,7 +389,6 @@
             const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`);
             const data = await res.json();
             
-            // Ayet numaralarını özel parantezlerle ekle: ﴿١﴾
             currentSurahText = data.data.ayahs.map(a => `${a.text} ﴿${a.numberInSurah}﴾`).join(' ');
             document.getElementById('quranText').innerText = currentSurahText;
             document.getElementById('startBtn').disabled = false;
@@ -426,7 +473,6 @@
         document.getElementById('resultBox').style.display = 'block';
     }
 
-    // Sayfa açıldığında suraları getir
     loadSurahs();
 </script>
 </body>
