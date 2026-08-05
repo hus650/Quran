@@ -19,7 +19,6 @@
             --gold-dark: #5c3a08;
             --gold-light: #fffbc8;
             --danger: #dc2626;
-            --success: #16a34a;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,12 +72,8 @@
             background: #fffdf5;
             color: var(--gold-dark);
             outline: none;
-            transition: border-color 0.2s;
         }
 
-        select:focus { border-color: var(--gold-primary); }
-
-        /* ANA AYET METİN ALANI */
         .quran-container {
             background: #ffffff;
             border: 2px solid #e2bd62;
@@ -95,10 +90,9 @@
             word-spacing: 2px;
         }
 
-        /* KELİME CANLI AÇILMA STİLLERİ */
         .q-word {
             display: inline-block;
-            transition: filter 0.3s ease, opacity 0.3s ease, transform 0.2s;
+            transition: filter 0.3s ease, opacity 0.3s ease;
             filter: blur(10px);
             opacity: 0.12;
             user-select: none;
@@ -114,11 +108,7 @@
             user-select: text;
             background-color: transparent;
             color: var(--gold-dark);
-            animation: wordHighlight 0.5s ease-out;
-        }
-
-        .q-word.current-active {
-            border-bottom: 3px solid var(--gold-primary);
+            animation: wordHighlight 0.4s ease-out;
         }
 
         @keyframes wordHighlight {
@@ -153,14 +143,13 @@
             align-items: center;
             gap: 10px;
             transition: all 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .btn-start { background: var(--gold-primary); color: #fff; }
-        .btn-start:hover:not(:disabled) { background: #ab7f11; transform: translateY(-1px); }
+        .btn-start:hover:not(:disabled) { background: #ab7f11; }
         .btn-stop { background: var(--danger); color: #fff; }
-        .btn-stop:hover:not(:disabled) { background: #b91c1c; transform: translateY(-1px); }
-        .btn:disabled { opacity: 0.45; cursor: not-allowed; box-shadow: none; transform: none; }
+        .btn-stop:hover:not(:disabled) { background: #b91c1c; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .status-badge {
             display: none;
@@ -169,13 +158,6 @@
             font-weight: bold;
             font-size: 18px;
             margin-bottom: 15px;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
         }
 
         .results-panel {
@@ -193,15 +175,6 @@
             color: var(--gold-primary);
             text-align: center;
             font-family: 'Plus Jakarta Sans', sans-serif;
-            margin-bottom: 5px;
-        }
-
-        .feedback-text {
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            color: var(--gold-dark);
-            margin-bottom: 15px;
         }
 
         .error-tag-list {
@@ -249,7 +222,7 @@
     </div>
 
     <div class="status-badge" id="statusIndicator">
-        🔴 جاري الاستماع لقراءتك... اتلُ الآيات وسيتم كشف الكلمات فوراً
+        🔴 جاري الاستماع... اتلُ الآيات بالترتيب وستفتح الكلمات واحدة تلو الأخرى
     </div>
 
     <div class="action-bar">
@@ -263,32 +236,25 @@
 
     <div class="results-panel" id="resultsPanel">
         <div class="score-display" id="scoreDisplay">%0</div>
-        <div class="feedback-text" id="feedbackDisplay"></div>
-        <h4 style="margin-top:15px; color: var(--gold-dark);">الكلمات التي تحتاج إلى مراجعة:</h4>
+        <div class="feedback-text" id="feedbackDisplay" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
+        <h4 style="margin-top:15px;">الكلمات التي تحتاج إلى مراجعة:</h4>
         <ul id="errorList" class="error-tag-list"></ul>
     </div>
 </div>
 
 <script>
-/**
- * Modüler ve Kararlı QuranRecitation App Mimarisi
- */
 const QuranApp = (function() {
-    // Uygulama Durum Değişkenleri
     let state = {
         surahAyahs: [],
         isListening: false,
         fullTranscribedSpeech: "",
-        wordsMap: [], // DOM elemanları ve temiz metin haritası
-        lastMatchedIndex: -1,
+        wordsMap: [], 
+        currentExpectedIndex: 0, // SADECE SIRADAKİ KELİMEYİ TAKİP EDEN İNDEKS
         recognitionInstance: null
     };
 
-    /**
-     * Gelişmiş Arapça Metin Temizleme / Normalize Etme
-     */
     function normalizeArabic(text) {
-        if (!text || typeof text !== 'string') return "";
+        if (!text) return "";
         return text
             .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
             .replace(/[﴿﴾0-9\(\)\[\]\{\}\.\,\;\:\-\_\"\']/g, '')
@@ -301,9 +267,6 @@ const QuranApp = (function() {
             .trim();
     }
 
-    /**
-     * İki Kelime Arasında Esnek Benzerlik Hesabı (Levenshtein Distance)
-     */
     function calculateLevenshtein(a, b) {
         if (a.length === 0) return b.length;
         if (b.length === 0) return a.length;
@@ -335,13 +298,10 @@ const QuranApp = (function() {
         return (dist / Math.max(w1.length, w2.length)) <= 0.25;
     }
 
-    /**
-     * Web Speech API Kurulumu ve Olay Bağlantıları
-     */
     function initSpeechRecognition() {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            alert("المتصفح الحالي لا يدعم ميزة التعرف الصوتي المباشر. يرجى استخدام متصفح Google Chrome.");
+            alert("المتصفح لا يدعم التسميع الصوتي المباشر.");
             return;
         }
 
@@ -361,59 +321,54 @@ const QuranApp = (function() {
             }
             
             const currentLiveText = state.fullTranscribedSpeech + ' ' + interimTranscript;
-            processLiveMatching(currentLiveText);
+            processStrictSequentialMatching(currentLiveText);
         };
 
         state.recognitionInstance.onend = () => {
-            // Otomatik Yeniden Bağlanma (Bag/Kopma önleme)
             if (state.isListening) {
                 try { state.recognitionInstance.start(); } catch(e){}
             }
         };
-
-        state.recognitionInstance.onerror = (e) => {
-            console.warn("Speech recognition error:", e.error);
-        };
     }
 
     /**
-     * Canlı Konuşmayı Ayet Kelimeleri İle Anında Eşleştirme Motoru
+     * SADECE VE SADECE SIRADAKİ KELİMELERİ SIFIR HATA İLE AÇAN SIRALI MOTOR
      */
-    function processLiveMatching(speechText) {
+    function processStrictSequentialMatching(speechText) {
         const cleanSpeech = normalizeArabic(speechText);
         if (!cleanSpeech) return;
 
         const spokenWords = cleanSpeech.split(' ').filter(w => w.length > 0);
         if (spokenWords.length === 0) return;
 
-        // Son 10 kelimelik canlı pencereye odaklan
-        const recentSpoken = spokenWords.slice(-10);
+        // Okunan son 6 kelimelik parçaya bak
+        const recentSpoken = spokenWords.slice(-6);
 
-        // Henüz açılmamış kelimeler üzerinden tarama yap
-        for (let i = state.lastMatchedIndex + 1; i < state.wordsMap.length; i++) {
+        // Sıradaki 3 kelimelik pencereye izin ver (Ufak atlamalara esneklik için)
+        let maxSearchAhead = Math.min(state.currentExpectedIndex + 3, state.wordsMap.length);
+
+        for (let i = state.currentExpectedIndex; i < maxSearchAhead; i++) {
             const item = state.wordsMap[i];
-            
-            // Eğer kelime zaten açık ise atla
-            if (item.isRevealed) continue;
+            if (!item || item.isRevealed) continue;
 
-            // Okunan son kelimelerde eşleşme ara
             const matched = recentSpoken.some(spkWd => isWordMatch(item.cleanWord, spkWd));
 
             if (matched) {
-                item.isRevealed = true;
-                item.element.classList.add('revealed');
-                state.lastMatchedIndex = i;
+                // Arada atlanan kelimeler varsa onları da sırayla aç
+                for (let k = state.currentExpectedIndex; k <= i; k++) {
+                    if (state.wordsMap[k] && !state.wordsMap[k].isRevealed) {
+                        state.wordsMap[k].isRevealed = true;
+                        state.wordsMap[k].element.classList.add('revealed');
+                    }
+                }
 
-                // Ekranı aktif açılan kelimemize doğru yumuşakça kaydır (Auto-scroll)
+                state.currentExpectedIndex = i + 1;
                 item.element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
                 break;
             }
         }
     }
 
-    /**
-     * API'den Bütün Surah Listesini Yükleme
-     */
     async function fetchSurahList() {
         try {
             const res = await fetch('https://api.alquran.cloud/v1/surah');
@@ -424,7 +379,7 @@ const QuranApp = (function() {
                 selectEl.innerHTML += `<option value="${surah.number}">${surah.number}. سورة ${surah.name}</option>`;
             });
         } catch (e) {
-            alert('حدث خطأ أثناء تحميل قائمة السور.');
+            alert('خطأ في تحميل السور.');
         }
     }
 
@@ -452,7 +407,7 @@ const QuranApp = (function() {
                 this.renderText();
                 document.getElementById('startBtn').disabled = false;
             } catch (e) {
-                alert('خطأ في تحميل نص السورة المباركة.');
+                alert('خطأ في تحميل نص السورة.');
             }
         },
 
@@ -462,7 +417,7 @@ const QuranApp = (function() {
             quranContainer.innerHTML = '';
 
             state.wordsMap = [];
-            state.lastMatchedIndex = -1;
+            state.currentExpectedIndex = 0;
 
             state.surahAyahs.forEach(ayah => {
                 const isBeforeStart = ayah.numberInSurah < startAyah;
@@ -480,13 +435,11 @@ const QuranApp = (function() {
                         state.wordsMap.push({
                             cleanWord: cleanW,
                             element: wordSpan,
-                            isRevealed: false,
-                            ayahNumber: ayah.numberInSurah
+                            isRevealed: false
                         });
                     }
                 });
 
-                // Ayet Sonu Numarası İşareti
                 const ayahNumSpan = document.createElement('span');
                 ayahNumSpan.className = 'verse-num';
                 ayahNumSpan.innerText = ` ﴿${ayah.numberInSurah}﴾ `;
@@ -540,7 +493,7 @@ const QuranApp = (function() {
                     this.displayResults(result.data);
                 }
             } catch (e) {
-                alert('حدث خطأ أثناء إجراء التقييم النهائي.');
+                alert('حدث خطأ أثناء التقييم.');
             }
         },
 
@@ -558,7 +511,7 @@ const QuranApp = (function() {
                     errorList.appendChild(li);
                 });
             } else {
-                errorList.innerHTML = '<li style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">ما شاء الله! التلاوة ممتازة ومتقنة للغاية بدون أخطاء.</li>';
+                errorList.innerHTML = '<li style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">ما شاء الله! التلاوة ممتازة ومتقنة للغاية.</li>';
             }
 
             document.getElementById('resultsPanel').style.display = 'block';
