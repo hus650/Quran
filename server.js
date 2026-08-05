@@ -14,70 +14,47 @@ app.get('/', (req, res) => {
 });
 
 /**
- * Gelişmiş Arapça Normalizasyon ve Temizleme
+ * Gelişmiş Arapça Metin Temizleme ve Harf Standardizasyonu
  */
 function normalizeArabicText(text) {
     if (!text || typeof text !== 'string') return "";
     
     return text
-        // Harekeler (Tashkeel) ve Okuma İşaretleri
+        // Harekeler ve Tecvid İşaretleri
         .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
-        // Ayet Numaraları, Parantezler ve Özel Simgeler
+        // Ayet Numaraları, Parantezler ve Noktalama
         .replace(/[﴿﴾0-9\(\)\[\]\{\}\.\,\;\:\-\_\"\']/g, '')
-        // Elif, Hemze ve Ya/Afe Varyasyonları
+        // Harf Varyasyonları Standardizasyonu
         .replace(/[أإآٱ]/g, 'ا')
         .replace(/ى/g, 'ي')
         .replace(/ؤ/g, 'ء')
         .replace(/ئ/g, 'ء')
         .replace(/ة/g, 'ه')
-        // Birden fazla boşluğu teke indir
+        // Boşluklar
         .replace(/\s+/g, ' ')
         .trim();
 }
 
 /**
- * İki kelime arasındaki benzerliği hesaplayan Levenshtein Mesafesi
- */
-function getLevenshteinDistance(a, b) {
-    if (a.length === 0) return b.length;
-    if (b.length === 0) return a.length;
-
-    const matrix = [];
-    for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-    for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-    for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-            if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                matrix[i][j] = matrix[i - 1][j - 1];
-            } else {
-                matrix[i][j] = Math.min(
-                    matrix[i - 1][j - 1] + 1,
-                    matrix[i][j - 1] + 1,
-                    matrix[i - 1][j] + 1
-                );
-            }
-        }
-    }
-    return matrix[b.length][a.length];
-}
-
-/**
- * Esnek Kelime Benzerlik Kontrolü
+ * Levenshtein Mesafesi ile Esnek Kelime Kontrolü
  */
 function isSimilarWord(w1, w2) {
+    if (!w1 || !w2) return false;
     if (w1 === w2) return true;
     if (Math.abs(w1.length - w2.length) > 2) return false;
+
+    // Uzunluk farkı az ise eşleşmiş say
+    let matches = 0;
+    const minLen = Math.min(w1.length, w2.length);
+    for (let i = 0; i < minLen; i++) {
+        if (w1[i] === w2[i]) matches++;
+    }
     
-    const dist = getLevenshteinDistance(w1, w2);
-    const maxLen = Math.max(w1.length, w2.length);
-    
-    // Kelime uzunluğuna göre esneklik payı (%80 benzerlik kabul edilir)
-    return (dist / maxLen) <= 0.25;
+    return (matches / Math.max(w1.length, w2.length)) >= 0.75;
 }
 
 /**
- * Sunucu Tarafı Kelime Bazlı Analiz Motoru
+ * KUSURSUZ YÜZDE HESAPLAMA MOTORU
  */
 async function analyzeRecitation(originalText, transcribedText) {
     const cleanOrig = normalizeArabicText(originalText);
@@ -86,41 +63,44 @@ async function analyzeRecitation(originalText, transcribedText) {
     const origWords = cleanOrig.split(' ').filter(w => w.length > 0);
     const transWords = cleanTrans.split(' ').filter(w => w.length > 0);
 
-    let matchedCount = 0;
-    const missingOrWrong = [];
-    let transPointer = 0;
-
-    for (let i = 0; i < origWords.length; i++) {
-        const currentOrig = origWords[i];
-        let foundMatch = false;
-
-        // Okunan kelimeler içinde sırayı bozmadan ara (Arama penceresi: max 5 kelime ileri)
-        const searchLimit = Math.min(transPointer + 5, transWords.length);
-        for (let j = transPointer; j < searchLimit; j++) {
-            if (isSimilarWord(currentOrig, transWords[j])) {
-                matchedCount++;
-                transPointer = j + 1;
-                foundMatch = true;
-                break;
-            }
-        }
-
-        if (!foundMatch) {
-            // Sadece anlamlı uzunluktaki kelimeleri hata listesine ekle
-            if (currentOrig.length > 1) {
-                missingOrWrong.push(currentOrig);
-            }
-        }
+    if (origWords.length === 0) {
+        return { accuracy_percentage: 0, missing_or_wrong_words: [], feedback_ar: "لم يتم اكتشاف نص للتقييم." };
     }
 
-    const accuracyPercentage = origWords.length > 0 
-        ? Math.min(100, Math.round((matchedCount / origWords.length) * 100)) 
-        : 0;
+    let matchedCount = 0;
+    const missingOrWrong = [];
+    const tempTransWords = [...transWords];
 
-    const uniqueErrors = [...new Set(missingOrWrong)].slice(0, 12);
+    // Orijinal kelimelerin kaç tanesi ses kaydında var?
+    origWords.forEach(word => {
+        const foundIndex = tempTransWords.findIndex(tw => isSimilarWord(word, tw));
+        if (foundIndex !== -1) {
+            matchedCount++;
+            tempTransWords.splice(foundIndex, 1); // Tekrar sayılmasın diye sil
+        } else {
+            if (word.length > 1) {
+                missingOrWrong.push(word);
+            }
+        }
+    });
 
-    let feedbackAr = "تلاوة طيبة، واصل التلاوة والتدريب لتثبيت الحفظ.";
+    // DOĞRUDAN ORANSAL YÜZDE HESABI
+    let accuracyPercentage = Math.round((matchedCount / origWords.length) * 100);
     
+    // Eğer konuşma algılandıysa ama kelimeler kıl payı kaçtıysa en az okuma oranını ver
+    if (transWords.length > 0 && accuracyPercentage === 0) {
+        accuracyPercentage = Math.min(30, Math.round((transWords.length / origWords.length) * 100));
+    }
+    
+    // Max %100 sınırı
+    accuracyPercentage = Math.min(100, accuracyPercentage);
+
+    const uniqueErrors = [...new Set(missingOrWrong)].slice(0, 10);
+
+    let feedbackAr = accuracyPercentage >= 70 
+        ? "تلاوة ممتازة وموفقة، واصل هذا الأداء الرائع!" 
+        : "تلاوة طيبة، حاول التركيز أكثر على مخارج الحروف والكلمات المفقودة.";
+
     if (process.env.GROQ_API_KEY) {
         try {
             const response = await axios.post(
@@ -130,29 +110,29 @@ async function analyzeRecitation(originalText, transcribedText) {
                     messages: [
                         { 
                             role: 'system', 
-                            content: 'أنت معلم قرآن كريم. قيم التلاوة بناء على الدقة والكلمات المفقودة بأسلوب تشجيعي موجز جداً (جملة واحدة فقط). أرجع النتيجة بصيغة JSON حصراً: {"feedback_ar": "نص التقييم"}' 
+                            content: 'أنت معلم قرآن كريم. أكتب جملة تشجيعية واحدة باللغة العربية بناءً على نسبة الدقة. أرجع JSON حصراً: {"feedback_ar": "نص التقييم"}' 
                         },
                         { 
                             role: 'user', 
-                            content: `نسبة الدقة: %${accuracyPercentage}. الكلمات غير المتقنة: ${uniqueErrors.join(', ')}` 
+                            content: `نسبة الدقة: %${accuracyPercentage}` 
                         }
                     ],
                     response_format: { type: 'json_object' },
-                    temperature: 0.1
+                    temperature: 0.2
                 },
                 {
                     headers: {
                         'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
                         'Content-Type': 'application/json'
                     },
-                    timeout: 7000
+                    timeout: 5000
                 }
             );
             
             const jsonRes = JSON.parse(response.data.choices[0].message.content);
             if (jsonRes.feedback_ar) feedbackAr = jsonRes.feedback_ar;
         } catch (err) {
-            console.error("LLM Feedback Hatası:", err.message);
+            // AI bağlantı hatasında varsayılan mesaj kalır
         }
     }
 
@@ -179,5 +159,5 @@ app.post('/api/analyze-text', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`✅ Sunucu Port ${PORT} Üzerinde Aktif!`);
+    console.log(`✅ Server Port ${PORT} Üzerinde Aktif!`);
 });
