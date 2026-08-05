@@ -1,26 +1,9 @@
 require('dotenv').config();
 const express = require('express');
-const multer = require('multer');
 const axios = require('axios');
-const fs = require('fs');
 const path = require('path');
 
 const app = express();
-
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, uploadDir),
-    filename: (req, file, cb) => cb(null, `recitation-${Date.now()}.wav`)
-});
-
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 25 * 1024 * 1024 }
-});
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -31,32 +14,50 @@ app.get('/', (req, res) => {
 });
 
 /**
- * Katı LLM Karşılaştırma Analizi
+ * Kelime Bazlı Katı Doğruluk ve Analiz Fonksiyonu
  */
 async function analyzeRecitationWithLLM(originalText, transcribedText) {
+    // 1. Arapça karakter temizleme (Harekeler ve noktalama işaretleri çıkarılır)
+    const cleanArabic = (text) => {
+        return text
+            .replace(/[\u064B-\u065F\u0670]/g, '') // Harekeler
+            .replace(/[﴿﴾0-9]/g, '')               // Ayet numaraları
+            .replace(/[^\u0600-\u06FF\s]/g, '')    // Sadece Arapça harfler
+            .trim();
+    };
+
+    const cleanOriginal = cleanArabic(originalText);
+    const cleanTranscribed = cleanArabic(transcribedText);
+
+    const origWords = cleanOriginal.split(/\s+/).filter(w => w.length > 0);
+    const transWords = cleanTranscribed.split(/\s+/).filter(w => w.length > 0);
+
+    // 2. Matematiksel Doğruluk Skorlama
+    let correctMatches = 0;
+    const missingOrWrong = [];
+
+    origWords.forEach(word => {
+        if (transWords.includes(word)) {
+            correctMatches++;
+        } else {
+            missingOrWrong.push(word);
+        }
+    });
+
+    const calculatedAccuracy = origWords.length > 0 
+        ? Math.round((correctMatches / origWords.length) * 100) 
+        : 0;
+
+    // 3. Yapay Zeka Feedback Oluşturma
     const systemPrompt = `
-    Sen strict (titiz) bir Kur'an-ı Kerim Değerlendirme Uzmanısın.
-    Görevin: Kullanıcının okuduğu metni (transcribed_text) ile orijinal ayetleri (original_text) KELİME KELİME karşılaştırmaktır.
-
-    DEĞERLENDİRME KURALLARI:
-    1. YANLIŞ/EKSİK KELİME: Kullanıcı orijinal metindeki bir kelimeyi atladıysa veya yanlış okuduysa bunu "missing_or_wrong_words" listesine ekle.
-    2. %100 YALANI YAPMA: Eğer kullanıcı metni yanlış okuduysa VEYA eksik okuduysa KESİNLİKLE %100 verme! Gerçekçi bir skor hesapla.
-    3. BAŞLANGIÇ ESNEKLİĞİ: Kullanıcı surenin ortasındaki bir ayetten başladıysa, okumadığı önceki ayetleri HATA sayma. Sadece okumaya başladığı yerden itibaren değerlendir.
-    4. REVEALED VERSES: Doğru okunan veya kabul edilebilir ayet numaralarını "revealed_verse_numbers" dizisine yaz.
-
-    ÇIKTI FORMATI (YALNIZCA JSON):
+    Sen bir Kur'an-ı Kerيم Değerlendirme Uzmanısın.
+    Kullanıcının okuduğu metin ile orijinal metin karşılaştırıldı. 
+    Lütfen kullanıcıya Arapça dilinde, nazik ve teşvik edici tek cümlelik bir değerlendirme yaz.
+    
+    YALNIZCA GEÇERLİ JSON DÖNDÜR:
     {
-      "accuracy_percentage": (0-100 arası integer),
-      "transcribed_text": "${transcribedText.replace(/"/g, '\\"')}",
-      "revealed_verse_numbers": [1, 2, 3],
-      "missing_or_wrong_words": ["hatalı veya eksik kelimeler"],
-      "feedback_ar": "Arapça kısa ve dürüst değerlendirme notu."
+      "feedback_ar": "Arapça kısa değerlendirme cümlesi"
     }
-    `;
-
-    const userPrompt = `
-    Orijinal Kur'an Metni: ${originalText}
-    Kullanıcının Okuduğu Metin: ${transcribedText}
     `;
 
     try {
@@ -66,24 +67,33 @@ async function analyzeRecitationWithLLM(originalText, transcribedText) {
                 model: 'llama-3.3-70b-versatile',
                 messages: [
                     { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
+                    { role: 'user', content: `Orijinal: ${cleanOriginal}\nOkunan: ${cleanTranscribed}` }
                 ],
                 response_format: { type: 'json_object' },
-                temperature: 0.0
+                temperature: 0.1
             },
             {
                 headers: {
                     'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
                     'Content-Type': 'application/json'
                 },
-                timeout: 30000
+                timeout: 15000
             }
         );
 
-        return JSON.parse(response.data.choices[0].message.content);
+        const aiFeedback = JSON.parse(response.data.choices[0].message.content);
+
+        return {
+            accuracy_percentage: calculatedAccuracy,
+            missing_or_wrong_words: [...new Set(missingOrWrong)], // Tekrarlayan kelimeleri temizle
+            feedback_ar: aiFeedback.feedback_ar || "تمت التقييم بنجاح."
+        };
     } catch (error) {
-        console.error("LLM Analiz Hatası:", error.message);
-        throw new Error("Analiz yapılırken sunucu hatası oluştu.");
+        return {
+            accuracy_percentage: calculatedAccuracy,
+            missing_or_wrong_words: [...new Set(missingOrWrong)],
+            feedback_ar: "تمت مراجعة التلاوة حسب الكلمات المطابقة."
+        };
     }
 }
 
@@ -91,7 +101,7 @@ app.post('/api/analyze-text', async (req, res) => {
     try {
         const { originalText, transcribedText } = req.body;
         if (!originalText || !transcribedText) {
-            return res.status(400).json({ success: false, message: 'Eksik veri gönderildi.' });
+            return res.status(400).json({ success: false, message: 'Nص غير مكتمل.' });
         }
 
         const analysisResult = await analyzeRecitationWithLLM(originalText, transcribedText);
