@@ -6,26 +6,31 @@
     <title>تطبيق تسميع القرآن الكريم التفاعلي المباشر</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --bg-grad-1: #f3e098; --bg-grad-2: #d4a326; --bg-grad-3: #784e10;
-            --panel-bg: rgba(255, 255, 255, 0.97);
-            --gold-primary: #c59318; --gold-dark: #5c3a08; --gold-light: #fffbc8;
-            --danger: #dc2626;
+            --bg-main: #0f172a;
+            --panel-bg: #1e293b;
+            --panel-border: #334155;
+            --accent-gold: #d97706;
+            --accent-gold-hover: #b45309;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --word-hidden-bg: #334155;
+            --word-revealed-color: #fef08a;
+            --danger: #ef4444;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Amiri', serif;
-            background: linear-gradient(135deg, var(--bg-grad-1) 0%, var(--bg-grad-2) 50%, var(--bg-grad-3) 100%);
-            background-attachment: fixed;
-            color: var(--gold-dark);
+            background-color: var(--bg-main);
+            color: var(--text-light);
             min-height: 100vh;
-            padding: 20px 10px;
+            padding: 30px 15px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -33,97 +38,174 @@
 
         .main-card {
             width: 100%;
-            max-width: 950px;
+            max-width: 900px;
             background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
-            border: 2px solid #e2bd62;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--panel-border);
         }
 
-        header { text-align: center; margin-bottom: 25px; }
-        header h1 { font-size: 32px; color: var(--gold-dark); font-weight: 700; }
+        header { text-align: center; margin-bottom: 30px; }
+        header h1 { 
+            font-size: 28px; 
+            color: var(--text-light); 
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
 
         .control-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
             gap: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
 
-        .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 16px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-muted);
+        }
 
         select {
-            width: 100%; padding: 12px 15px;
-            border: 2px solid #d1a73e; border-radius: 12px;
-            font-size: 18px; font-family: 'Amiri', serif;
-            background: #fffdf5; color: var(--gold-dark); outline: none;
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            font-size: 17px;
+            font-family: 'Amiri', serif;
+            background: #0f172a;
+            color: var(--text-light);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent-gold);
         }
 
         .quran-container {
-            background: #ffffff;
-            border: 2px solid #e2bd62;
-            padding: 30px; border-radius: 20px;
+            background: #0f172a;
+            border: 1px solid var(--panel-border);
+            padding: 35px;
+            border-radius: 16px;
             font-family: 'Amiri Quran', serif;
-            font-size: 30px; line-height: 2.6;
-            text-align: justify; max-height: 420px;
-            overflow-y: auto; margin-bottom: 20px;
-            scroll-behavior: smooth; word-spacing: 2px;
+            font-size: 28px;
+            line-height: 2.8;
+            text-align: justify;
+            max-height: 450px;
+            overflow-y: auto;
+            margin-bottom: 25px;
+            scroll-behavior: smooth;
+            word-spacing: 4px;
         }
 
+        /* MAT & ŞIK KELİME TASARIMI */
         .q-word {
             display: inline-block;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-            filter: blur(10px); opacity: 0.12;
-            user-select: none; background-color: var(--gold-light);
-            border-radius: 6px; padding: 0 4px; margin: 0 2px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: blur(8px);
+            opacity: 0.15;
+            user-select: none;
+            background-color: var(--word-hidden-bg);
+            border-radius: 6px;
+            padding: 0 6px;
+            margin: 0 2px;
+            color: var(--text-light);
         }
 
         .q-word.revealed {
-            filter: blur(0); opacity: 1;
-            user-select: text; background-color: transparent;
-            color: var(--gold-dark); animation: wordHighlight 0.4s ease-out;
+            filter: blur(0);
+            opacity: 1;
+            user-select: text;
+            background-color: transparent;
+            color: var(--word-revealed-color);
         }
 
-        @keyframes wordHighlight {
-            0% { transform: scale(1.15); background-color: #fce888; }
-            100% { transform: scale(1); background-color: transparent; }
+        .verse-num {
+            display: inline-block;
+            color: var(--accent-gold);
+            font-size: 22px;
+            margin: 0 10px;
+            opacity: 0.8;
         }
 
-        .verse-num { display: inline-block; color: var(--gold-primary); font-size: 24px; margin: 0 8px; }
-
-        .action-bar { display: flex; gap: 15px; justify-content: center; align-items: center; margin-bottom: 15px; }
+        .action-bar {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
 
         .btn {
-            padding: 14px 32px; font-size: 19px; font-weight: bold;
-            font-family: 'Amiri', serif; border: none; border-radius: 14px;
-            cursor: pointer; display: flex; align-items: center; gap: 10px;
+            padding: 12px 28px;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: 'Amiri', serif;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: all 0.2s ease;
         }
 
-        .btn-start { background: var(--gold-primary); color: #fff; }
-        .btn-start:hover:not(:disabled) { background: #ab7f11; }
+        .btn-start { background: var(--accent-gold); color: #fff; }
+        .btn-start:hover:not(:disabled) { background: var(--accent-gold-hover); }
         .btn-stop { background: var(--danger); color: #fff; }
-        .btn-stop:hover:not(:disabled) { background: #b91c1c; }
-        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn-stop:hover:not(:disabled) { opacity: 0.9; }
+        .btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
         .status-badge {
-            display: none; text-align: center; color: var(--danger);
-            font-weight: bold; font-size: 18px; margin-bottom: 15px;
+            display: none;
+            text-align: center;
+            color: #f87171;
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 20px;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(239, 68, 68, 0.2);
         }
 
         .results-panel {
-            display: none; margin-top: 20px; padding: 25px;
-            border-radius: 18px; background: #fffdf2; border: 2px solid #e2bd62;
+            display: none;
+            margin-top: 20px;
+            padding: 25px;
+            border-radius: 14px;
+            background: #0f172a;
+            border: 1px solid var(--panel-border);
         }
 
         .score-display {
-            font-size: 54px; font-weight: 800; color: var(--gold-primary);
-            text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent-gold);
+            text-align: center;
+            font-family: 'Inter', sans-serif;
         }
 
-        .error-tag-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        .error-tag-list li { background: #fef2f2; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-size: 16px; border: 1px solid #fecaca; }
+        .error-tag-list {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .error-tag-list li {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 15px;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -153,7 +235,7 @@
     </div>
 
     <div class="status-badge" id="statusIndicator">
-        🔴 جاري الاستماع... يمكنك التكرار وإعادة القراءة بحرية دون التأثير على التقييم
+        🔴 جاري الاستماع... اتلُ الآيات بالترتيب (يمكنك التكرار بحرية)
     </div>
 
     <div class="action-bar">
@@ -167,8 +249,8 @@
 
     <div class="results-panel" id="resultsPanel">
         <div class="score-display" id="scoreDisplay">%0</div>
-        <div class="feedback-text" id="feedbackDisplay" style="text-align:center; font-weight:bold; margin-top:10px;"></div>
-        <h4 style="margin-top:15px;">الكلمات التي تحتاج إلى مراجعة:</h4>
+        <div class="feedback-text" id="feedbackDisplay" style="text-align:center; font-weight:600; margin-top:10px; color: var(--text-muted);"></div>
+        <h4 style="margin-top:15px; font-size: 16px; color: var(--text-light);">الكلمات التي تحتاج إلى مراجعة:</h4>
         <ul id="errorList" class="error-tag-list"></ul>
     </div>
 </div>
@@ -180,6 +262,7 @@ const QuranApp = (function() {
         isListening: false,
         fullTranscribedSpeech: "",
         wordsMap: [],
+        currentIndex: 0, // SIKI SIRALI TAKİP İNDEKSİ (IŞINLANMAYI ÖNLER)
         recognitionInstance: null
     };
 
@@ -233,7 +316,7 @@ const QuranApp = (function() {
             }
             
             const currentLiveText = state.fullTranscribedSpeech + ' ' + interimTranscript;
-            processFreeRepeatMatching(currentLiveText);
+            processControlledSequentialMatching(currentLiveText);
         };
 
         state.recognitionInstance.onend = () => {
@@ -244,29 +327,40 @@ const QuranApp = (function() {
     }
 
     /**
-     * TEKRARLARI DESTEKLEYEN CANLI AÇMA MOTORU
+     * KONTROLLÜ SIRALI AÇMA (İLERİ SIÇRAMA VE IŞINLANMA ENGELLENDİ)
      */
-    function processFreeRepeatMatching(speechText) {
+    function processControlledSequentialMatching(speechText) {
         const cleanSpeech = normalizeArabic(speechText);
         if (!cleanSpeech) return;
 
         const spokenWords = cleanSpeech.split(' ').filter(w => w.length > 0);
         if (spokenWords.length === 0) return;
 
-        // Okunan son 8 kelimeye odaklan
-        const recentSpoken = spokenWords.slice(-8);
+        const recentSpoken = spokenWords.slice(-5);
 
-        // Ekrandaki henüz açılmamış kelimeleri kontrol et
-        state.wordsMap.forEach(item => {
-            if (item.isRevealed) return;
+        // Sadece mevcut konumdan maksimum 3 kelime sonrasına bakılır
+        let maxSearchIndex = Math.min(state.currentIndex + 3, state.wordsMap.length);
+
+        for (let i = state.currentIndex; i < maxSearchIndex; i++) {
+            const item = state.wordsMap[i];
+            if (!item || item.isRevealed) continue;
 
             const matched = recentSpoken.some(spkWd => isWordMatch(item.cleanWord, spkWd));
+
             if (matched) {
-                item.isRevealed = true;
-                item.element.classList.add('revealed');
+                // Sadece bulunulan kelimeyi ve aradaki küçük atlamayı aç
+                for (let k = state.currentIndex; k <= i; k++) {
+                    if (state.wordsMap[k] && !state.wordsMap[k].isRevealed) {
+                        state.wordsMap[k].isRevealed = true;
+                        state.wordsMap[k].element.classList.add('revealed');
+                    }
+                }
+
+                state.currentIndex = i + 1;
                 item.element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+                break;
             }
-        });
+        }
     }
 
     async function fetchSurahList() {
@@ -317,6 +411,7 @@ const QuranApp = (function() {
             quranContainer.innerHTML = '';
 
             state.wordsMap = [];
+            state.currentIndex = 0;
 
             state.surahAyahs.forEach(ayah => {
                 const isBeforeStart = ayah.numberInSurah < startAyah;
@@ -410,7 +505,7 @@ const QuranApp = (function() {
                     errorList.appendChild(li);
                 });
             } else {
-                errorList.innerHTML = '<li style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">ما شاء الله! التلاوة ممتازة ومتقنة للغاية.</li>';
+                errorList.innerHTML = '<li style="background:rgba(34,197,94,0.15); color:#86efac; border-color:rgba(34,197,94,0.3);">ما شاء الله! التلاوة ممتازة ومتقنة للغاية.</li>';
             }
 
             document.getElementById('resultsPanel').style.display = 'block';
