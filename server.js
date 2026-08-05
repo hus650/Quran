@@ -13,9 +13,6 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-/**
- * Arapça Metin Standardizasyonu
- */
 function normalizeArabicText(text) {
     if (!text || typeof text !== 'string') return "";
     
@@ -31,9 +28,6 @@ function normalizeArabicText(text) {
         .trim();
 }
 
-/**
- * Esnek Kelime Benzerlik Kontrolü
- */
 function isSimilarWord(w1, w2) {
     if (!w1 || !w2) return false;
     if (w1 === w2) return true;
@@ -48,30 +42,22 @@ function isSimilarWord(w1, w2) {
     return (matches / Math.max(w1.length, w2.length)) >= 0.70;
 }
 
-/**
- * TARTEEL STİLİ TEKRARLARI TOLERE EDEN ANALİZ MOTORU
- */
 async function analyzeRecitation(originalText, transcribedText) {
     const cleanOrig = normalizeArabicText(originalText);
     const cleanTrans = normalizeArabicText(transcribedText);
 
-    // Orijinal kelime listesi
     const origWords = cleanOrig.split(' ').filter(w => w.length > 0);
-    // Okunan kelime listesi (Tekrarları ayıklamak için Set/Unique havuzuna dönüştürülür)
     const rawTransWords = cleanTrans.split(' ').filter(w => w.length > 0);
 
     if (origWords.length === 0) {
         return { accuracy_percentage: 0, missing_or_wrong_words: [], feedback_ar: "لم يتم اكتشاف قراءة." };
     }
 
-    // Orijinal kelimelerden kaç tanesi okunan metin İÇİNDE EN AZ 1 KERE GEÇTİ?
     let matchedUniqueCount = 0;
     const missingOrWrong = [];
 
     origWords.forEach(origWord => {
-        // Okunan kelimelerden herhangi biriyle eşleşiyor mu? (Kullanıcı 10 kere de okusa 1 kere sayılır)
         const isRead = rawTransWords.some(transWord => isSimilarWord(origWord, transWord));
-        
         if (isRead) {
             matchedUniqueCount++;
         } else {
@@ -81,7 +67,6 @@ async function analyzeRecitation(originalText, transcribedText) {
         }
     });
 
-    // NET TARTEEL YÜZDE HESABI
     let accuracyPercentage = Math.round((matchedUniqueCount / origWords.length) * 100);
     accuracyPercentage = Math.min(100, Math.max(0, accuracyPercentage));
 
@@ -147,5 +132,5 @@ app.post('/api/analyze-text', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`✅ Tarteel Mantıklı Server Port ${PORT} Üzerinde Aktif!`);
+    console.log(`✅ Stabil Server Port ${PORT} Üzerinde Aktif!`);
 });
