@@ -11,13 +11,9 @@
     
     <style>
         :root {
-            --bg-grad-1: #f3e098;
-            --bg-grad-2: #d4a326;
-            --bg-grad-3: #784e10;
+            --bg-grad-1: #f3e098; --bg-grad-2: #d4a326; --bg-grad-3: #784e10;
             --panel-bg: rgba(255, 255, 255, 0.97);
-            --gold-primary: #c59318;
-            --gold-dark: #5c3a08;
-            --gold-light: #fffbc8;
+            --gold-primary: #c59318; --gold-dark: #5c3a08; --gold-light: #fffbc8;
             --danger: #dc2626;
         }
 
@@ -55,60 +51,38 @@
             margin-bottom: 20px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: bold;
-            font-size: 16px;
-        }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 16px; }
 
         select {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #d1a73e;
-            border-radius: 12px;
-            font-size: 18px;
-            font-family: 'Amiri', serif;
-            background: #fffdf5;
-            color: var(--gold-dark);
-            outline: none;
+            width: 100%; padding: 12px 15px;
+            border: 2px solid #d1a73e; border-radius: 12px;
+            font-size: 18px; font-family: 'Amiri', serif;
+            background: #fffdf5; color: var(--gold-dark); outline: none;
         }
 
         .quran-container {
             background: #ffffff;
             border: 2px solid #e2bd62;
-            padding: 30px;
-            border-radius: 20px;
+            padding: 30px; border-radius: 20px;
             font-family: 'Amiri Quran', serif;
-            font-size: 30px;
-            line-height: 2.6;
-            text-align: justify;
-            max-height: 420px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-            scroll-behavior: smooth;
-            word-spacing: 2px;
+            font-size: 30px; line-height: 2.6;
+            text-align: justify; max-height: 420px;
+            overflow-y: auto; margin-bottom: 20px;
+            scroll-behavior: smooth; word-spacing: 2px;
         }
 
         .q-word {
             display: inline-block;
             transition: filter 0.3s ease, opacity 0.3s ease;
-            filter: blur(10px);
-            opacity: 0.12;
-            user-select: none;
-            background-color: var(--gold-light);
-            border-radius: 6px;
-            padding: 0 4px;
-            margin: 0 2px;
+            filter: blur(10px); opacity: 0.12;
+            user-select: none; background-color: var(--gold-light);
+            border-radius: 6px; padding: 0 4px; margin: 0 2px;
         }
 
         .q-word.revealed {
-            filter: blur(0);
-            opacity: 1;
-            user-select: text;
-            background-color: transparent;
-            color: var(--gold-dark);
-            animation: wordHighlight 0.4s ease-out;
+            filter: blur(0); opacity: 1;
+            user-select: text; background-color: transparent;
+            color: var(--gold-dark); animation: wordHighlight 0.4s ease-out;
         }
 
         @keyframes wordHighlight {
@@ -116,32 +90,14 @@
             100% { transform: scale(1); background-color: transparent; }
         }
 
-        .verse-num {
-            display: inline-block;
-            color: var(--gold-primary);
-            font-size: 24px;
-            margin: 0 8px;
-        }
+        .verse-num { display: inline-block; color: var(--gold-primary); font-size: 24px; margin: 0 8px; }
 
-        .action-bar {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+        .action-bar { display: flex; gap: 15px; justify-content: center; align-items: center; margin-bottom: 15px; }
 
         .btn {
-            padding: 14px 32px;
-            font-size: 19px;
-            font-weight: bold;
-            font-family: 'Amiri', serif;
-            border: none;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            padding: 14px 32px; font-size: 19px; font-weight: bold;
+            font-family: 'Amiri', serif; border: none; border-radius: 14px;
+            cursor: pointer; display: flex; align-items: center; gap: 10px;
             transition: all 0.2s ease;
         }
 
@@ -152,47 +108,22 @@
         .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .status-badge {
-            display: none;
-            text-align: center;
-            color: var(--danger);
-            font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 15px;
+            display: none; text-align: center; color: var(--danger);
+            font-weight: bold; font-size: 18px; margin-bottom: 15px;
         }
 
         .results-panel {
-            display: none;
-            margin-top: 20px;
-            padding: 25px;
-            border-radius: 18px;
-            background: #fffdf2;
-            border: 2px solid #e2bd62;
+            display: none; margin-top: 20px; padding: 25px;
+            border-radius: 18px; background: #fffdf2; border: 2px solid #e2bd62;
         }
 
         .score-display {
-            font-size: 54px;
-            font-weight: 800;
-            color: var(--gold-primary);
-            text-align: center;
-            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 54px; font-weight: 800; color: var(--gold-primary);
+            text-align: center; font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        .error-tag-list {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .error-tag-list li {
-            background: #fef2f2;
-            color: #991b1b;
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            border: 1px solid #fecaca;
-        }
+        .error-tag-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .error-tag-list li { background: #fef2f2; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-size: 16px; border: 1px solid #fecaca; }
     </style>
 </head>
 <body>
@@ -222,7 +153,7 @@
     </div>
 
     <div class="status-badge" id="statusIndicator">
-        🔴 جاري الاستماع... اتلُ الآيات بالترتيب وستفتح الكلمات واحدة تلو الأخرى
+        🔴 جاري الاستماع... يمكنك التكرار وإعادة القراءة بحرية دون التأثير على التقييم
     </div>
 
     <div class="action-bar">
@@ -248,8 +179,7 @@ const QuranApp = (function() {
         surahAyahs: [],
         isListening: false,
         fullTranscribedSpeech: "",
-        wordsMap: [], 
-        currentExpectedIndex: 0, // SADECE SIRADAKİ KELİMEYİ TAKİP EDEN İNDEKS
+        wordsMap: [],
         recognitionInstance: null
     };
 
@@ -267,35 +197,17 @@ const QuranApp = (function() {
             .trim();
     }
 
-    function calculateLevenshtein(a, b) {
-        if (a.length === 0) return b.length;
-        if (b.length === 0) return a.length;
-        const matrix = [];
-        for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-        for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
-
-        for (let i = 1; i <= b.length; i++) {
-            for (let j = 1; j <= a.length; j++) {
-                if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                    matrix[i][j] = matrix[i - 1][j - 1];
-                } else {
-                    matrix[i][j] = Math.min(
-                        matrix[i - 1][j - 1] + 1,
-                        matrix[i][j - 1] + 1,
-                        matrix[i - 1][j] + 1
-                    );
-                }
-            }
-        }
-        return matrix[b.length][a.length];
-    }
-
     function isWordMatch(w1, w2) {
         if (!w1 || !w2) return false;
         if (w1 === w2) return true;
         if (Math.abs(w1.length - w2.length) > 2) return false;
-        const dist = calculateLevenshtein(w1, w2);
-        return (dist / Math.max(w1.length, w2.length)) <= 0.25;
+        
+        let matches = 0;
+        const minLen = Math.min(w1.length, w2.length);
+        for (let i = 0; i < minLen; i++) {
+            if (w1[i] === w2[i]) matches++;
+        }
+        return (matches / Math.max(w1.length, w2.length)) >= 0.70;
     }
 
     function initSpeechRecognition() {
@@ -321,7 +233,7 @@ const QuranApp = (function() {
             }
             
             const currentLiveText = state.fullTranscribedSpeech + ' ' + interimTranscript;
-            processStrictSequentialMatching(currentLiveText);
+            processFreeRepeatMatching(currentLiveText);
         };
 
         state.recognitionInstance.onend = () => {
@@ -332,41 +244,29 @@ const QuranApp = (function() {
     }
 
     /**
-     * SADECE VE SADECE SIRADAKİ KELİMELERİ SIFIR HATA İLE AÇAN SIRALI MOTOR
+     * TEKRARLARI DESTEKLEYEN CANLI AÇMA MOTORU
      */
-    function processStrictSequentialMatching(speechText) {
+    function processFreeRepeatMatching(speechText) {
         const cleanSpeech = normalizeArabic(speechText);
         if (!cleanSpeech) return;
 
         const spokenWords = cleanSpeech.split(' ').filter(w => w.length > 0);
         if (spokenWords.length === 0) return;
 
-        // Okunan son 6 kelimelik parçaya bak
-        const recentSpoken = spokenWords.slice(-6);
+        // Okunan son 8 kelimeye odaklan
+        const recentSpoken = spokenWords.slice(-8);
 
-        // Sıradaki 3 kelimelik pencereye izin ver (Ufak atlamalara esneklik için)
-        let maxSearchAhead = Math.min(state.currentExpectedIndex + 3, state.wordsMap.length);
-
-        for (let i = state.currentExpectedIndex; i < maxSearchAhead; i++) {
-            const item = state.wordsMap[i];
-            if (!item || item.isRevealed) continue;
+        // Ekrandaki henüz açılmamış kelimeleri kontrol et
+        state.wordsMap.forEach(item => {
+            if (item.isRevealed) return;
 
             const matched = recentSpoken.some(spkWd => isWordMatch(item.cleanWord, spkWd));
-
             if (matched) {
-                // Arada atlanan kelimeler varsa onları da sırayla aç
-                for (let k = state.currentExpectedIndex; k <= i; k++) {
-                    if (state.wordsMap[k] && !state.wordsMap[k].isRevealed) {
-                        state.wordsMap[k].isRevealed = true;
-                        state.wordsMap[k].element.classList.add('revealed');
-                    }
-                }
-
-                state.currentExpectedIndex = i + 1;
+                item.isRevealed = true;
+                item.element.classList.add('revealed');
                 item.element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-                break;
             }
-        }
+        });
     }
 
     async function fetchSurahList() {
@@ -417,7 +317,6 @@ const QuranApp = (function() {
             quranContainer.innerHTML = '';
 
             state.wordsMap = [];
-            state.currentExpectedIndex = 0;
 
             state.surahAyahs.forEach(ayah => {
                 const isBeforeStart = ayah.numberInSurah < startAyah;
