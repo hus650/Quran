@@ -13,12 +13,15 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+/**
+ * Gelişmiş Arapça Metin Standardizasyonu
+ */
 function normalizeArabicText(text) {
     if (!text || typeof text !== 'string') return "";
     
     return text
-        .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '')
-        .replace(/[﴿﴾0-9\(\)\[\]\{\}\.\,\;\:\-\_\"\']/g, '')
+        .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '') // Harekeler ve tecvid işaretleri
+        .replace(/[﴿﴾0-9\(\)\[\]\{\}\.\,\;\:\-\_\"\']/g, '') // Parantez ve rakamlar
         .replace(/[أإآٱ]/g, 'ا')
         .replace(/ى/g, 'ي')
         .replace(/ؤ/g, 'ء')
@@ -28,6 +31,9 @@ function normalizeArabicText(text) {
         .trim();
 }
 
+/**
+ * Esnek Kelime Benzerliği Kontrolü (Fuzzy Matching)
+ */
 function isSimilarWord(w1, w2) {
     if (!w1 || !w2) return false;
     if (w1 === w2) return true;
@@ -39,25 +45,30 @@ function isSimilarWord(w1, w2) {
         if (w1[i] === w2[i]) matches++;
     }
     
-    return (matches / Math.max(w1.length, w2.length)) >= 0.70;
+    return (matches / Math.max(w1.length, w2.length)) >= 0.65;
 }
 
+/**
+ * DENGELİ YÜZDE HESAPLAMA MOTORU
+ */
 async function analyzeRecitation(originalText, transcribedText) {
     const cleanOrig = normalizeArabicText(originalText);
     const cleanTrans = normalizeArabicText(transcribedText);
 
     const origWords = cleanOrig.split(' ').filter(w => w.length > 0);
-    const rawTransWords = cleanTrans.split(' ').filter(w => w.length > 0);
+    const transWords = cleanTrans.split(' ').filter(w => w.length > 0);
 
     if (origWords.length === 0) {
         return { accuracy_percentage: 0, missing_or_wrong_words: [], feedback_ar: "لم يتم اكتشاف قراءة." };
     }
 
+    // Orijinal metindeki kelimelerin ne kadarı doğru seslendirildi?
     let matchedUniqueCount = 0;
     const missingOrWrong = [];
 
     origWords.forEach(origWord => {
-        const isRead = rawTransWords.some(transWord => isSimilarWord(origWord, transWord));
+        // Okunan kelime havuzunda en az 1 kez geçiyorsa doğru say
+        const isRead = transWords.some(transWord => isSimilarWord(origWord, transWord));
         if (isRead) {
             matchedUniqueCount++;
         } else {
@@ -67,14 +78,21 @@ async function analyzeRecitation(originalText, transcribedText) {
         }
     });
 
+    // NET ORANSAL HESAP: (Eşleşen Kelime / Toplam Kelime) * 100
     let accuracyPercentage = Math.round((matchedUniqueCount / origWords.length) * 100);
+    
+    // Ses girişi var ama eşleşme sıfırsa minimum taban
+    if (transWords.length > 0 && accuracyPercentage === 0) {
+        accuracyPercentage = 5;
+    }
+    
     accuracyPercentage = Math.min(100, Math.max(0, accuracyPercentage));
 
     const uniqueErrors = [...new Set(missingOrWrong)].slice(0, 10);
 
     let feedbackAr = accuracyPercentage >= 80 
-        ? "تلاوة مباركة وممتازة! ما شاء الله." 
-        : "تلاوة طيبة، يرجى التكرار والممارسة لتثبيت الكلمات المتبقية.";
+        ? "تلاوة مباركة ومتقنة، أحسنت بارك الله فيك!" 
+        : "تلاوة طيبة، واصل التكرار والممارسة لتثبيت الآيات الكريمة.";
 
     if (process.env.GROQ_API_KEY) {
         try {
@@ -132,5 +150,5 @@ app.post('/api/analyze-text', async (req, res) => {
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-    console.log(`✅ Stabil Server Port ${PORT} Üzerinde Aktif!`);
+    console.log(`✅ Sunucu Port ${PORT} Üzerinde Aktif!`);
 });
