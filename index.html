@@ -3,27 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تطبيق اختبار وتسميع القرآن الكريم VIP</title>
+    <title>تطبيق تسميع القرآن الكريم المباشر</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:ital,wght@0,400;0,700&family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
-            --g1: #fffdf0; --g2: #fffae0; --g3: #fef4c5; --g4: #fce895; --g5: #f8d763;
-            --g6: #eed054; --g7: #e5b83b; --g8: #d4a326; --g9: #b8860b; --g10: #996515;
-            --g11: #784e10; --g12: #5c3a08; --g13: #422803; --g14: #fff7d6;
-            --danger-color: #dc2626; --card-bg: rgba(255, 255, 255, 0.95);
+            --g1: #fffdf0; --g2: #fef4c5; --g3: #f8d763; --g4: #d4a326;
+            --g5: #996515; --g6: #5c3a08; --danger-color: #dc2626;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             font-family: 'Amiri', serif;
-            background: linear-gradient(135deg, var(--g6) 0%, var(--g8) 50%, var(--g10) 100%);
+            background: linear-gradient(135deg, #eed054 0%, #d4a326 50%, #996515 100%);
             background-attachment: fixed;
-            color: var(--g13);
+            color: var(--g6);
             min-height: 100vh;
             padding: 30px 15px;
             display: flex;
@@ -33,17 +31,16 @@
 
         .container {
             width: 100%;
-            max-width: 950px;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            border: 2px solid var(--g6);
+            max-width: 900px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 2px solid var(--g3);
         }
 
         header { text-align: center; margin-bottom: 25px; }
-        h1 { color: var(--g12); font-size: 32px; }
-        p.subtitle { color: var(--g11); font-size: 18px; }
+        h1 { color: var(--g6); font-size: 32px; }
 
         .select-grid {
             display: grid;
@@ -54,104 +51,107 @@
 
         select {
             width: 100%;
-            padding: 14px;
-            border: 2px solid var(--g6);
+            padding: 12px 15px;
+            border: 2px solid var(--g3);
             border-radius: 12px;
             font-size: 18px;
             font-family: 'Amiri', serif;
             background: var(--g1);
-            color: var(--g13);
+            color: var(--g6);
             outline: none;
         }
 
-        .live-transcript-box {
-            background: #1e293b;
-            color: #38bdf8;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 20px;
-            min-height: 60px;
-            margin-bottom: 20px;
-            direction: rtl;
-        }
-
+        /* DOGRUDAN ANA METIN KUTUSU */
         .quran-box {
             background: #ffffff;
-            border: 2px solid var(--g5);
+            border: 2px solid var(--g3);
             padding: 30px;
             border-radius: 20px;
             font-family: 'Amiri Quran', serif;
-            font-size: 26px;
-            line-height: 2.5;
+            font-size: 28px;
+            line-height: 2.6;
             text-align: justify;
-            max-height: 380px;
+            max-height: 420px;
             overflow-y: auto;
             margin-bottom: 25px;
+            position: relative;
         }
 
+        /* AYETLERIN CANLI ACILMA STILI */
         .verse {
             display: inline;
-            transition: all 0.5s ease;
+            transition: all 0.4s ease;
             filter: blur(10px);
-            opacity: 0.15;
+            opacity: 0.12;
             user-select: none;
-            background-color: var(--g4);
+            background-color: var(--g2);
             border-radius: 6px;
-            padding: 2px 4px;
+            padding: 2px 6px;
         }
 
         .verse.revealed {
             filter: blur(0);
             opacity: 1;
+            user-select: text;
             background-color: transparent;
-            color: var(--g13);
-            animation: glow 1s ease-out;
+            color: var(--g6);
+            animation: goldFlash 0.8s ease-out;
         }
 
-        @keyframes glow {
-            0% { background-color: var(--g5); }
+        @keyframes goldFlash {
+            0% { background-color: var(--g3); }
             100% { background-color: transparent; }
         }
 
-        .controls { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; }
+        .controls { display: flex; gap: 15px; justify-content: center; margin-bottom: 15px; }
 
         button.main-btn {
-            padding: 14px 30px;
-            font-size: 18px;
+            padding: 14px 32px;
+            font-size: 19px;
             font-weight: bold;
             font-family: 'Amiri', serif;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             cursor: pointer;
             display: flex;
             align-items: center;
             gap: 10px;
+            transition: 0.2s;
         }
 
-        .btn-start { background: var(--g8); color: white; }
+        .btn-start { background: var(--g4); color: white; }
+        .btn-start:hover { background: var(--g5); }
         .btn-stop { background: var(--danger-color); color: white; }
         button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        .result-box {
+        .recording-indicator {
             display: none;
-            margin-top: 25px;
-            padding: 25px;
-            border-radius: 16px;
-            background: #ffffff;
-            border: 2px solid var(--g5);
+            text-align: center;
+            color: var(--danger-color);
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
         }
 
-        .score-value { font-size: 48px; font-weight: bold; color: var(--g10); text-align: center; }
+        .result-box {
+            display: none;
+            margin-top: 20px;
+            padding: 25px;
+            border-radius: 18px;
+            background: var(--g1);
+            border: 2px solid var(--g3);
+        }
+
+        .score-value { font-size: 52px; font-weight: bold; color: var(--g5); text-align: center; font-family: 'Plus Jakarta Sans', sans-serif; }
         ul.error-list { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-        ul.error-list li { background: #fef2f2; color: #991b1b; padding: 5px 12px; border-radius: 8px; font-size: 16px; }
+        ul.error-list li { background: #fef2f2; color: #991b1b; padding: 6px 14px; border-radius: 8px; font-size: 16px; border: 1px solid #fecaca; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <header>
-        <h1>تطبيق اختبار وتسميع القرآن الكريم</h1>
-        <p class="subtitle">تسميع حي ومباشر مع الذكاء الاصطناعي</p>
+        <h1>تطبيق تسميع القرآن الكريم المباشر</h1>
     </header>
 
     <div class="select-grid">
@@ -169,17 +169,17 @@
         </div>
     </div>
 
-    <div class="live-transcript-box" id="liveTranscript">
-        🎙️ النص المسموع مباشر سيظهر هنا أثناء كلامك...
-    </div>
-
     <div class="quran-box" id="quranText">
         الرجاء اختيار سورة لبدء التسميع...
     </div>
 
+    <div class="recording-indicator" id="recIndicator">
+        🔴 جاري الاستماع لقراءتك مباشرة... اتلُ الآيات المباركة
+    </div>
+
     <div class="controls">
         <button id="startBtn" class="main-btn btn-start" onclick="startLiveRecognition()" disabled>
-            <i class="fa-solid fa-microphone"></i> <span>ابدأ التسميع المباشر</span>
+            <i class="fa-solid fa-microphone"></i> <span>ابدأ التسميع</span>
         </button>
         <button id="stopBtn" class="main-btn btn-stop" onclick="stopLiveRecognition()" disabled>
             <i class="fa-solid fa-square"></i> <span>إنهاء والتقييم النهائي</span>
@@ -188,7 +188,7 @@
 
     <div class="result-box" id="resultBox">
         <div class="score-value" id="scoreValue">0%</div>
-        <p id="feedbackText" style="margin-top:10px; font-weight:bold;"></p>
+        <p id="feedbackText" style="margin-top:10px; font-weight:bold; text-align:center;"></p>
         <h4 style="margin-top:15px;">الكلمات الخاطئة أو المفقودة:</h4>
         <ul id="errorList" class="error-list"></ul>
     </div>
@@ -196,16 +196,26 @@
 
 <script>
     let surahAyahs = [];
-    let recognition;
+    let recognition = null;
+    let isListening = false;
     let fullTranscribedSpeech = "";
 
-    // Web Speech API Kurulumu (Canlı Ses Tanıma)
+    // Arapça metin temizleme helper
+    function cleanArabic(text) {
+        return text
+            .replace(/[\u064B-\u065F\u0670]/g, '')
+            .replace(/[﴿﴾0-9]/g, '')
+            .replace(/[^\u0600-\u06FF\s]/g, '')
+            .trim();
+    }
+
+    // Web Speech API Kurulumu
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         recognition = new SpeechRecognition();
         recognition.continuous = true;
         recognition.interimResults = true;
-        recognition.lang = 'ar-SA'; // Arapça Canlı Algılama
+        recognition.lang = 'ar-SA';
 
         recognition.onresult = (event) => {
             let interimTranscript = '';
@@ -217,18 +227,19 @@
                 }
             }
             
-            const currentLiveText = fullTranscribedSpeech + ' ' + interimTranscript;
-            document.getElementById('liveTranscript').innerText = currentLiveText;
-
-            // CANLI AÇMA SİHRİ: Okunan kelimeleri anında eşleştir ve ayetleri aç!
-            checkAndRevealLive(currentLiveText);
+            const liveText = fullTranscribedSpeech + ' ' + interimTranscript;
+            // CANLI AÇMA: Sadece ana ayet kutusundaki görünümü günceller
+            processLiveReveal(liveText);
         };
 
-        recognition.onerror = (err) => {
-            console.error("Speech Error:", err);
+        recognition.onend = () => {
+            // Eğer kullanıcı stop butonuna basmadıysa konuşma durduğunda otomatik tekrar başlat (Bug önleme)
+            if (isListening) {
+                try { recognition.start(); } catch(e){}
+            }
         };
     } else {
-        alert("متصفحك لا يدعم خاصية التعرف الصوتي المباشر. يرجى استخدام Google Chrome.");
+        alert("متصفحك لا يدعم التعرف الصوتي المباشر. يرجى استخدام متصفح Chrome.");
     }
 
     async function loadSurahs() {
@@ -241,7 +252,7 @@
                 select.innerHTML += `<option value="${surah.number}">${surah.number}. سورة ${surah.name}</option>`;
             });
         } catch (e) {
-            alert('خطأ في تحميل السور');
+            alert('خطأ في تحميل قائمة السور.');
         }
     }
 
@@ -254,7 +265,7 @@
             const data = await res.json();
             surahAyahs = data.data.ayahs;
 
-            // Ayet Seçim Kutusunu Doldur
+            // Başlangıç Ayeti Seçimi
             const startSelect = document.getElementById('startAyahSelect');
             startSelect.innerHTML = '';
             surahAyahs.forEach(a => {
@@ -272,30 +283,34 @@
         const startAyah = parseInt(document.getElementById('startAyahSelect').value) || 1;
         const quranBox = document.getElementById('quranText');
 
-        // Kullanıcının seçtiği ayetten öncesi görünür/muaf, sonrası gizli render edilir
+        // Seçilen ayetten öncesi görünür, seçilen ve sonrası flu açılacak şekilde yüklenir
         quranBox.innerHTML = surahAyahs.map(a => {
             const isBeforeStart = a.numberInSurah < startAyah;
             return `<span class="verse ${isBeforeStart ? 'revealed' : ''}" id="verse-${a.numberInSurah}">${a.text} ﴿${a.numberInSurah}﴾</span>`;
         }).join(' ');
     }
 
-    // CANLI KELİME KONTROLÜ VE ANINDA AÇMA
-    function checkAndRevealLive(speechText) {
-        const cleanSpeech = speechText.replace(/[^\u0600-\u06FF\s]/g, ''); // Sadece Arapça harfler
-        
-        surahAyahs.forEach(a => {
-            const cleanAyah = a.text.replace(/[^\u0600-\u06FF\s]/g, '');
-            // Eğer okunan canlı metin içinde ayetin kelimelerinin büyük kısmı geçiyorsa aç
-            const words = cleanAyah.split(' ').filter(w => w.length > 2);
-            let matchCount = 0;
-            
-            words.forEach(w => {
-                if (cleanSpeech.includes(w)) matchCount++;
-            });
+    // CANLI KELİME KONTROLÜ VE ANINDA METİN AÇMA
+    function processLiveReveal(speechText) {
+        const cleanSpeech = cleanArabic(speechText);
+        if (!cleanSpeech) return;
 
-            if (matchCount >= Math.ceil(words.length * 0.5)) {
-                const el = document.getElementById(`verse-${a.numberInSurah}`);
-                if (el && !el.classList.contains('revealed')) {
+        const speechWords = cleanSpeech.split(/\s+/);
+
+        surahAyahs.forEach(a => {
+            const el = document.getElementById(`verse-${a.numberInSurah}`);
+            if (el && !el.classList.contains('revealed')) {
+                const cleanAyah = cleanArabic(a.text);
+                const ayahWords = cleanAyah.split(/\s+/);
+                
+                // Ayet kelimelerinin canlı konuşma içindeki eşleşme sayısını bul
+                let matchCount = 0;
+                ayahWords.forEach(w => {
+                    if (speechWords.includes(w)) matchCount++;
+                });
+
+                // Eğer ayetin %40'ından fazlası telaffuz edildiyse ayet görünür hale gelir
+                if (matchCount >= Math.ceil(ayahWords.length * 0.4)) {
                     el.classList.add('revealed');
                 }
             }
@@ -303,11 +318,15 @@
     }
 
     function startLiveRecognition() {
+        if (!recognition) return;
+
         fullTranscribedSpeech = "";
-        document.getElementById('liveTranscript').innerText = "جاري الاستماع... ابدأ القراءة الآن";
-        document.getElementById('resultBox').style.display = 'none';
+        isListening = true;
         
-        recognition.start();
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('recIndicator').style.display = 'block';
+        
+        try { recognition.start(); } catch(e){}
 
         document.getElementById('startBtn').disabled = true;
         document.getElementById('stopBtn').disabled = false;
@@ -316,19 +335,21 @@
     }
 
     async function stopLiveRecognition() {
-        recognition.stop();
+        isListening = false;
+        if (recognition) recognition.stop();
+
+        document.getElementById('recIndicator').style.display = 'none';
         document.getElementById('startBtn').disabled = false;
         document.getElementById('stopBtn').disabled = true;
         document.getElementById('surahSelect').disabled = false;
         document.getElementById('startAyahSelect').disabled = false;
 
-        // LLM Sunucusuna Doğrulama Talebi
+        // Başlangıç Ayetinden itibaren olan orijinal metni hazırla
         const startAyah = parseInt(document.getElementById('startAyahSelect').value) || 1;
         const relevantAyahs = surahAyahs.filter(a => a.numberInSurah >= startAyah);
         const originalText = relevantAyahs.map(a => `${a.text} ﴿${a.numberInSurah}﴾`).join(' ');
 
-        document.getElementById('liveTranscript').innerText = "جاري إرسال النص للتحليل النهائي...";
-
+        // Sunucudan Analiz İste
         try {
             const res = await fetch('/api/analyze-text', {
                 method: 'POST',
@@ -344,7 +365,7 @@
                 showFinalResults(result.data);
             }
         } catch (e) {
-            alert('خطأ أثناء التقييم النهائي.');
+            alert('حدث خطأ أثناء التقييم النهائي.');
         }
     }
 
@@ -360,7 +381,7 @@
                 errorList.innerHTML += `<li>${w}</li>`;
             });
         } else {
-            errorList.innerHTML = '<li>ما شاء الله! القراءة متقنة تماماً بدون أخطاء.</li>';
+            errorList.innerHTML = '<li style="background:#f0fdf4; color:#166534; border-color:#bbf7d0;">ما شاء الله! القراءة متقنة تماماً بدون أخطاء.</li>';
         }
 
         document.getElementById('resultBox').style.display = 'block';
