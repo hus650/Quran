@@ -19,8 +19,8 @@
             --card-bg: #ffffff;
             --text-color: #1f2937;
             --border-color: #e5e7eb;
-            --word-blur-bg: #1e293b;
-            --word-revealed: #0d9488;
+            --word-blur-bg: #cbd5e1;
+            --word-revealed: #000000; /* Açılan yazı siyah */
         }
 
         * {
@@ -129,6 +129,7 @@
             line-height: 2.5;
             text-align: justify;
             background-color: #fdfbf7;
+            color: #000000;
         }
 
         .container {
@@ -201,7 +202,7 @@
             font-size: 26px;
             line-height: 2.4;
             text-align: justify;
-            max-height: 350px;
+            max-height: 380px;
             overflow-y: auto;
             word-spacing: 4px;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
@@ -216,6 +217,17 @@
             border-radius: 4px;
         }
 
+        /* BESMELE STİLİ (Ayrı ve Üstte) */
+        .basmala {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed #d1d5db;
+        }
+
         /* KELİME GİZLEME / ANLIK AÇILMA STİLİ */
         .q-word {
             display: inline-block;
@@ -228,6 +240,7 @@
             padding: 0 6px;
             margin: 0 2px;
             cursor: pointer;
+            color: #000000;
         }
 
         .q-word.revealed {
@@ -239,11 +252,13 @@
             font-weight: bold;
         }
 
+        /* AYET NUMARASI İMGESİ (SİYAH) */
         .verse-num {
             display: inline-block;
-            color: var(--primary-color);
+            color: #000000 !important;
             font-size: 22px;
             margin: 0 6px;
+            font-weight: bold;
         }
 
         .controls {
@@ -513,13 +528,32 @@
             currentWordIndex = 0;
             isAllRevealed = false;
 
-            rawAyahsData.forEach(a => {
-                const words = a.text.split(' ');
+            // Tevbe Suresi (9) hariç tüm surelerin başına Besmele eklenir
+            if (parseInt(surahNum) !== 9 && parseInt(surahNum) !== 1) {
+                const basmalaDiv = document.createElement('div');
+                basmalaDiv.className = 'basmala';
+                basmalaDiv.innerText = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+                quranBox.appendChild(basmalaDiv);
+            }
+
+            rawAyahsData.forEach((a, index) => {
+                let ayahText = a.text;
+                
+                // Eğer Fatiha (1) veya diğer sureler ise ilk ayetteki besmeleyi API metninden ayırıp yukarı alabiliriz veya standart bırakabiliriz
+                // Fatiha için 1. ayet zaten Besmeledir:
+                if (parseInt(surahNum) === 1 && index === 0) {
+                    const basmalaDiv = document.createElement('div');
+                    basmalaDiv.className = 'basmala';
+                    basmalaDiv.innerText = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+                    quranBox.appendChild(basmalaDiv);
+                }
+
+                const words = ayahText.split(' ');
                 words.forEach(w => {
+                    // Eğer metinde geçen besmele kelimelerini atlamak istersek kontrol edebiliriz, doğrudan kelimeleri basıyoruz:
                     if (w.trim() !== '') {
                         const wordSpan = document.createElement('span');
                         wordSpan.className = 'q-word';
-                        // Hareketleri/işaretleri temizleyerek karşılaştırma için temiz kelime tutalım
                         wordSpan.dataset.word = cleanText(w);
                         wordSpan.innerText = w;
                         wordSpan.onclick = function() {
@@ -565,8 +599,14 @@
 
         modalTitle.innerText = surahSelect.options[surahSelect.selectedIndex].text;
         let fullHtml = '';
+        
+        const sNum = parseInt(surahSelect.value);
+        if (sNum !== 9) {
+            fullHtml += `<div style="text-align:center; font-weight:bold; margin-bottom:20px; font-size:26px;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>`;
+        }
+
         rawAyahsData.forEach(a => {
-            fullHtml += `${a.text} <span style="color: var(--primary-color);">﴿${a.numberInSurah}﴾</span> `;
+            fullHtml += `${a.text} <span style="color: #000000; font-weight:bold;">﴿${a.numberInSurah}﴾</span> `;
         });
         modalBody.innerHTML = fullHtml;
         modal.style.display = 'flex';
@@ -591,14 +631,12 @@
     // Sesli okuma ve anlık tanıma başlatma
     async function startRecording() {
         try {
-            // 1. Audio kaydı (arkada analiz için)
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             audioChunks = [];
             mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
             mediaRecorder.start();
 
-            // 2. Canlı Konuşma Tanıma (Anlık seri açılma için Web Speech API)
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 recognition = new SpeechRecognition();
@@ -633,11 +671,10 @@
             const cleanedSpoken = cleanText(sWord);
             if (!cleanedSpoken) return;
 
-            // Sıradaki birkaç kelimeyi tarayıp eşleşeni anında açalım (seri akış için)
             for (let i = currentWordIndex; i < Math.min(currentWordIndex + 5, wordSpans.length); i++) {
                 if (wordSpans[i].dataset.word.includes(cleanedSpoken) || cleanedSpoken.includes(wordSpans[i].dataset.word)) {
                     wordSpans[i].classList.add('revealed');
-                    currentWordIndex = i + 1; // İlerleyen kelimeye geç
+                    currentWordIndex = i + 1;
                     break;
                 }
             }
@@ -674,7 +711,6 @@
                     alert('حدث خطأ أثناء تقييم التلاوة.');
                 }
             } catch (err) {
-                // Sunucu simülasyonu için hata durumunda test skoru gösterilebilir
                 showResults({
                     accuracy_percentage: 95,
                     feedback_ar: 'ما شاء الله تبارك الله، تلاوة طيبة ومباركة.',
