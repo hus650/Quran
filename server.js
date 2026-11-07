@@ -1,207 +1,80 @@
-require('dotenv').config();
-const express = require('express');
-const axios = require('axios');
-const path = require('path');
-const multer = require('multer');
-const FormData = require('form-data');
-
-const app = express();
-const upload = multer({ storage: multer.memoryStorage() });
-
-app.use(express.json({ limit: '15mb' }));
-app.use(express.urlencoded({ extended: true, limit: '15mb' }));
-app.use(express.static(__dirname));
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-/**
- * Gelişmiş Arapça Metin Standardizasyonu
- */
-function normalizeArabicText(text) {
-    if (!text || typeof text !== 'string') return "";
-    
-    return text
-        .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '') // Harekeler ve tecvid işaretleri
-        .replace(/[﴿﴾0-9\(\)\[\]\{\}\.\,\;\:\-\_\"\']/g, '') // Parantez ve rakamlar
-        .replace(/[أإآٱ]/g, 'ا')
-        .replace(/ى/g, 'ي')
-        .replace(/ؤ/g, 'ء')
-        .replace(/ئ/g, 'ء')
-        .replace(/ة/g, 'ه')
-        .replace(/\s+/g, ' ')
-        .trim();
-}
-
-/**
- * Esnek Kelime Benzerliği Kontrolü (Fuzzy Matching)
- */
-function isSimilarWord(w1, w2) {
-    if (!w1 || !w2) return false;
-    if (w1 === w2) return true;
-    if (Math.abs(w1.length - w2.length) > 2) return false;
-
-    let matches = 0;
-    const minLen = Math.min(w1.length, w2.length);
-    for (let i = 0; i < minLen; i++) {
-        if (w1[i] === w2[i]) matches++;
-    }
-    
-    return (matches / Math.max(w1.length, w2.length)) >= 0.65;
-}
-
-/**
- * DENGELİ YÜZDE HESAPLAMA VE ANALİZ MOTORU
- */
-async function analyzeRecitation(originalText, transcribedText) {
-    const cleanOrig = normalizeArabicText(originalText);
-    const cleanTrans = normalizeArabicText(transcribedText);
-
-    const origWords = cleanOrig.split(' ').filter(w => w.length > 0);
-    const transWords = cleanTrans.split(' ').filter(w => w.length > 0);
-
-    if (origWords.length === 0) {
-        return { accuracy_percentage: 0, missing_or_wrong_words: [], feedback_ar: "لم يتم اكتشاف قراءة." };
-    }
-
-    let matchedUniqueCount = 0;
-    const missingOrWrong = [];
-
-    origWords.forEach(origWord => {
-        const isRead = transWords.some(transWord => isSimilarWord(origWord, transWord));
-        if (isRead) {
-            matchedUniqueCount++;
-        } else {
-            if (origWord.length > 1) {
-                missingOrWrong.push(origWord);
-            }
-        }
-    });
-
-    let accuracyPercentage = Math.round((matchedUniqueCount / origWords.length) * 100);
-    
-    if (transWords.length > 0 && accuracyPercentage === 0) {
-        accuracyPercentage = 5;
-    }
-    
-    accuracyPercentage = Math.min(100, Math.max(0, accuracyPercentage));
-
-    const uniqueErrors = [...new Set(missingOrWrong)].slice(0, 10);
-
-    let feedbackAr = accuracyPercentage >= 80 
-        ? "تلاوة مباركة ومتقنة، أحسنت بارك الله فيك!" 
-        : "تلاوة طيبة، واصل التكرار والممارسة لتثبيت الآيات الكريمة.";
-
-    if (process.env.GROQ_API_KEY) {
+// Sesli okuma ve akıllı kelime kontrolü başlatma
+    async function startRecording() {
         try {
-            const response = await axios.post(
-                'https://api.groq.com/openai/v1/chat/completions',
-                {
-                    model: 'llama-3.3-70b-versatile',
-                    messages: [
-                        { 
-                            role: 'system', 
-                            content: 'أنت معلم قرآن كريم. أكتب جملة تشجيعية قصيرة جداً باللغة العربية. أرجع JSON حصراً: {"feedback_ar": "نص التقييم"}' 
-                        },
-                        { 
-                            role: 'user', 
-                            content: `نسبة الإتقان: %${accuracyPercentage}` 
-                        }
-                    ],
-                    response_format: { type: 'json_object' },
-                    temperature: 0.2
-                },
-                {
-                    headers: {
-                        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-                        'Content-Type': 'application/json'
-                    },
-                    timeout: 5000
-                }
-            );
-            
-            const jsonRes = JSON.parse(response.data.choices[0].message.content);
-            if (jsonRes.feedback_ar) feedbackAr = jsonRes.feedback_ar;
-        } catch (err) {}
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.start();
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true; // Duraklamalarda kapanmayı önler, sürekli dinler
+                recognition.interimResults = true;
+
+                recognition.onresult = (event) => {
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        checkAndRevealWordsStrict(transcript);
+                    }
+                };
+
+                // Eğer tarayıcı sessizlikten dolayı durursa otomatik yeniden başlat (Kesintisiz deneyim için)
+                recognition.onend = () => {
+                    if (document.getElementById('recordingStatus').style.display === 'block') {
+                        try { recognition.start(); } catch (e) {}
+                    }
+                };
+
+                recognition.start();
+            }
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('surahSelect').disabled = true;
+            document.getElementById('recordingStatus').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+        } catch (error) {
+            alert('يرجى السماح باستخدام الميكروفون.');
+        }
     }
 
-    return {
-        accuracy_percentage: accuracyPercentage,
-        missing_or_wrong_words: uniqueErrors,
-        feedback_ar: feedbackAr
-    };
-}
+    // YANLIŞ KELİMEDE AÇMAYAN VE DÜŞÜNME PAYI BIRAKAN AKILLI KONTROL
+    function checkAndRevealWordsStrict(spokenText) {
+        const spokenWords = spokenText.split(' ');
+        const latestSpokenWord = spokenWords[spokenWords.length - 1]; // En son söylenen kelimeye odaklan
+        
+        const cleanedSpoken = cleanText(latestSpokenWord);
+        if (!cleanedSpoken) return;
 
-/**
- * 1. Tarayıcıdan gelen ses kaydını (audio/webm) Groq Whisper ile Arapça yazıya çeviren endpoint
- */
-app.post('/api/analyze', upload.single('audio'), async (req, res) => {
-    try {
-        const { originalText } = req.body;
-        const audioFile = req.file;
+        // Sıradaki hedef kelimeyi al
+        if (currentWordIndex < wordSpans.length) {
+            const targetWord = wordSpans[currentWordIndex].dataset.word;
 
-        if (!originalText) {
-            return res.status(400).json({ success: false, message: 'النص الأصلي مطلوب.' });
-        }
-
-        if (!audioFile) {
-            return res.status(400).json({ success: false, message: 'ملف الصوت مطلوب.' });
-        }
-
-        let transcribedText = "";
-
-        // Eğer GROQ_API_KEY tanımlıysa Whisper modelini kullanarak sesi kusursuz şekilde metne döküyoruz (Tamamen Ücretsiz Tier)
-        if (process.env.GROQ_API_KEY) {
-            try {
-                const formData = new FormData();
-                formData.append('file', audioFile.buffer, { filename: 'recitation.webm', contentType: 'audio/webm' });
-                formData.append('model', 'whisper-large-v3');
-                formData.append('language', 'ar'); // Arapça odaklı tanıma
-
-                const transcriptionRes = await axios.post(
-                    'https://api.groq.com/openai/v1/audio/transcriptions',
-                    formData,
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-                            ...formData.getHeaders()
-                        },
-                        timeout: 10000
-                    }
-                );
-                transcribedText = transcriptionRes.data.text || "";
-            } catch (whisperErr) {
-                console.error("Whisper Hatası:", whisperErr.message);
+            // Kelime eşleşiyor mu kontrol et (Esnek benzerlik)
+            if (targetWord.includes(cleanedSpoken) || cleanedSpoken.includes(targetWord) || isSimilarWord(targetWord, cleanedSpoken)) {
+                // DOĞRU KELİME: Aç ve bir sonraki kelimeye geç
+                wordSpans[currentWordIndex].classList.add('revealed');
+                currentWordIndex++;
+            } else {
+                // YANLIŞ KELİME: Kesinlikle açma! Kullanıcının düzeltmesini veya düşünmesini bekle.
+                // İsteğe bağlı olarak yanlış okunan kelimeyi görsel olarak hafifçe uyarabilirsin.
             }
         }
-
-        const data = await analyzeRecitation(originalText, transcribedText);
-        return res.json({ success: true, data });
-    } catch (error) {
-        return res.status(500).json({ success: false, message: error.message });
     }
-});
 
-/**
- * 2. Doğrudan metin analizi yapmak isteyenler için alternatif endpoint
- */
-app.post('/api/analyze-text', async (req, res) => {
-    try {
-        const { originalText, transcribedText } = req.body;
-        if (!originalText) {
-            return res.status(400).json({ success: false, message: 'النص الأصلي مطلوب.' });
+    // Sunucu tarafındaki esnek kelime karşılaştırma mantığı (Burada da destekleniyor)
+    function isSimilarWord(w1, w2) {
+        if (!w1 || !w2) return false;
+        if (w1 === w2) return true;
+        if (Math.abs(w1.length - w2.length) > 2) return false;
+
+        let matches = 0;
+        const minLen = Math.min(w1.length, w2.length);
+        for (let i = 0; i < minLen; i++) {
+            if (w1[i] === w2[i]) matches++;
         }
-
-        const data = await analyzeRecitation(originalText, transcribedText || "");
-        return res.json({ success: true, data });
-    } catch (error) {
-    
-        return res.status(500).json({ success: false, message: error.message });
+        return (matches / Math.max(w1.length, w2.length)) >= 0.65;
     }
-});
-
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-    console.log(`✅ Sunucu Port ${PORT} Üzerinde Aktif!`);
-});
