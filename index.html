@@ -2,339 +2,432 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>منصة التسميع التفاعلي المباشر</title>
-    
-    <!-- Google tag (gtag.js) - Google Analytics -->
-    <script async src="https://googletagmanager.com"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-BS0LYX8BTM');
-    </script>
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق اختبار وتسميع القرآن الكريم</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-dark: #0a0f1d;
-            --card-bg: rgba(18, 26, 47, 0.95);
-            --border-color: rgba(212, 163, 38, 0.2);
-            --border-hover: rgba(212, 163, 38, 0.5);
-            --gold-accent: #d4a326;
-            --gold-glow: rgba(212, 163, 38, 0.15);
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --word-blur-bg: #1e293b;
-            --word-revealed: #ffe082;
-            --danger: #ef4444;
+            --primary-color: #0d9488;
+            --primary-hover: #0f766e;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: 'Amiri', serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(212, 163, 38, 0.08) 0%, transparent 70%),
-                radial-gradient(circle at 10% 90%, rgba(15, 23, 42, 0.8) 0%, transparent 50%);
-            background-attachment: fixed;
-            color: var(--text-primary);
+            background: var(--bg-gradient);
+            color: var(--text-color);
             min-height: 100vh;
-            display: flex;
-        }
-
-        /* SABİT SOL SIDEBAR (TÜM SURELER) */
-        .kuran-sidebar-panel {
-            width: 280px;
-            height: 100vh;
-            background: #080c17;
-            border-left: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            position: fixed;
-            top: 0;
-            right: 0; /* RTL düzeninde sağ tarafta sabit durur */
-            z-index: 100;
-        }
-
-        .sidebar-panel-header {
-            padding: 20px;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(18, 26, 47, 0.6);
-            text-align: center;
-        }
-
-        .sidebar-panel-header h2 {
-            font-family: 'Amiri Quran', serif;
-            color: var(--gold-accent);
-            font-size: 24px;
-            font-weight: 400;
-        }
-
-        .sidebar-panel-body {
-            flex: 1;
-            padding: 12px;
-            overflow-y: auto;
-        }
-
-        .surah-list {
-            list-style: none;
-        }
-
-        .surah-item {
-            padding: 12px 16px;
-            margin-bottom: 6px;
-            border-radius: 10px;
-            background: rgba(18, 26, 47, 0.4);
-            border: 1px solid transparent;
-            color: var(--text-primary);
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s ease;
-        }
-
-        .surah-item:hover, .surah-item.active {
-            background: var(--gold-glow);
-            border-color: var(--gold-accent);
-            color: var(--gold-accent);
-        }
-
-        .surah-num {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        /* ANA UYGULAMA ALANI */
-        .main-wrapper {
-            margin-right: 280px; /* Sidebar kadar pay bırakır */
-            flex: 1;
-            padding: 40px 20px;
+            padding: 30px 15px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
 
-        .app-container {
+        .container {
             width: 100%;
-            max-width: 900px;
+            max-width: 850px;
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            padding: 40px;
             border-radius: 24px;
-            padding: 32px 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(12px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.6);
         }
 
-        /* HEADER SECTION */
-        header { text-align: center; margin-bottom: 28px; }
-        .title-badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: var(--gold-glow);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            color: var(--gold-accent);
-            font-size: 14px;
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 12px;
-        }
-        header h1 {
-            font-size: 30px;
-            color: var(--text-primary);
-            font-weight: 700;
+            margin-bottom: 8px;
         }
 
-        /* QURAN DISPLAY CONTAINER */
-        .quran-viewport {
-            background: #080c17;
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 32px 24px;
-            font-family: 'Amiri Quran', serif;
-            font-size: 28px;
-            line-height: 2.7;
-            text-align: justify;
-            max-height: 450px;
-            overflow-y: auto;
-            margin-bottom: 24px;
-            word-spacing: 3px;
-            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
-        }
-
-        /* KELİME STİLLERİ (GİZLİ/AÇIK) */
-        .q-word {
-            display: inline-block;
-            transition: filter 0.3s ease, opacity 0.3s ease;
-            filter: blur(9px);
-            opacity: 0.12;
-            user-select: none;
-            background: var(--word-blur-bg);
-            border-radius: 6px;
-            padding: 0 6px;
-            margin: 0 2px;
-            cursor: pointer;
-        }
-
-        .q-word.revealed {
-            filter: blur(0);
-            opacity: 1;
-            user-select: text;
-            background: transparent;
-            color: var(--word-revealed);
-            text-shadow: 0 0 10px rgba(255, 224, 130, 0.2);
-        }
-
-        .verse-num {
-            display: inline-block;
-            color: var(--gold-accent);
-            font-size: 22px;
-            margin: 0 8px;
-            opacity: 0.85;
-        }
-
-        /* BOTON ALANI */
-        .action-bar {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-        }
-
-        .btn {
-            padding: 14px 28px;
-            border-radius: 14px;
-            font-family: 'Amiri', serif;
+        p.subtitle {
+            color: #6b7280;
             font-size: 18px;
-            font-weight: 700;
-            border: none;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            color: #374151;
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 18px;
+            font-family: 'Amiri', serif;
+            outline: none;
+            background-color: #fff;
+            transition: all 0.3s ease;
             cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+
+        .quran-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .quran-box {
+            background-color: #fdfbf7;
+            border: 2px solid #f3ebe0;
+            padding: 30px;
+            border-radius: 16px;
+            font-size: 26px;
+            line-height: 2.4;
+            text-align: justify;
+            max-height: 320px;
+            overflow-y: auto;
+            word-spacing: 4px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .quran-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .quran-box::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 14px 36px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Amiri', serif;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
             align-items: center;
             gap: 10px;
-            transition: all 0.25s ease;
         }
 
         .btn-start {
-            background: linear-gradient(135deg, #d4a326 0%, #b48310 100%);
-            color: #000;
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
         }
 
-        .btn-start:hover {
+        .btn-start:hover:not(:disabled) {
+            background-color: var(--primary-hover);
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(212, 163, 38, 0.3);
         }
 
-        @media (max-width: 768px) {
-            body { flex-direction: column; }
-            .kuran-sidebar-panel { width: 100%; height: 200px; position: relative; border-left: none; border-bottom: 1px solid var(--border-color); }
-            .main-wrapper { margin-right: 0; padding: 20px 10px; }
+        .btn-stop {
+            background-color: var(--danger-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background-color: var(--danger-hover);
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .recording-status {
+            display: none;
+            text-align: center;
+            color: var(--danger-color);
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 16px;
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-card {
+            text-align: center;
+            padding: 15px;
+            background: #ffffff;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .score-title {
+            font-size: 18px;
+            color: #6b7280;
+        }
+
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .details-section {
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .details-section h3 {
+            color: #374151;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 5px;
+        }
+
+        ul.error-list {
+            list-style-type: square;
+            padding-right: 20px;
+            color: #b91c1c;
+        }
+
+        ul.error-list li {
+            margin-bottom: 6px;
         }
     </style>
 </head>
 <body>
 
-    <!-- SABİT KURAN SURE LİSTESİ SIDEBAR -->
-    <aside class="kuran-sidebar-panel">
-        <div class="sidebar-panel-header">
-            <h2>فهرس السور (Sureler)</h2>
+<div class="container">
+    <header>
+        <h1>اختبار واختبار حفظ القرآن الكريم</h1>
+        <p class="subtitle">اختر السورة، ابدأ القراءة، واستعرض نسبة التقييم ودقة الحفظ</p>
+    </header>
+
+    <div class="form-group">
+        <label for="surahSelect">اختر السورة المباركة:</label>
+        <select id="surahSelect" onchange="loadSurahText()">
+            <option value="">جاري تحميل قائمة السور...</option>
+        </select>
+    </div>
+
+    <div class="quran-container">
+        <div class="quran-box" id="quranText">
+            الرجاء اختيار سورة من القائمة أعلاه لبدء العرض والتسميع...
         </div>
-        <div class="sidebar-panel-body">
-            <ul class="surah-list" id="surahList">
-                <li class="surah-item active" data-surah="1">
-                    <span>الفاتحة</span>
-                    <span class="surah-num">١</span>
-                </li>
-                <li class="surah-item" data-surah="112">
-                    <span>الإخلاص</span>
-                    <span class="surah-num">١١٢</span>
-                </li>
-                <li class="surah-item" data-surah="113">
-                    <span>الفلق</span>
-                    <span class="surah-num">١١٣</span>
-                </li>
-                <li class="surah-item" data-surah="114">
-                    <span>الناس</span>
-                    <span class="surah-num">١١٤</span>
-                </li>
-            </ul>
+    </div>
+
+    <div class="recording-status" id="recordingStatus">
+        🔴 جاري تسجيل الصوت... تحدث بوضوح
+    </div>
+
+    <div class="controls">
+        <button id="startBtn" class="btn-start" onclick="startRecording()" disabled>
+            <span>ابدأ التسميع</span>
+        </button>
+        <button id="stopBtn" class="btn-stop" onclick="stopRecording()" disabled>
+            <span>إنهاء والتحليل</span>
+        </button>
+    </div>
+
+    <div class="loading" id="loadingText">
+        ⏳ جاري معالجة الصوت وتحليل التلاوة عبر الذكاء الاصطناعي...
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <div class="score-card">
+            <div class="score-title">نسبة دقة الحفظ والتلاوة</div>
+            <div class="score-value" id="scoreValue">0%</div>
         </div>
-    </aside>
 
-    <!-- ANA TASMIA OKUMA ALANI -->
-    <main class="main-wrapper">
-        <div class="app-container">
-            <header>
-                <span class="title-badge">التسميع التفاعلي</span>
-                <h1>منصة التسميع التفاعلي المباشر</h1>
-            </header>
+        <div class="details-section">
+            <h3>التشخيص والتقييم:</h3>
+            <p id="feedbackText" style="margin-bottom: 15px; color: #4b5563;"></p>
 
-            <div class="quran-viewport" id="quranViewport">
-                <!-- Tıklanarak açılan kelimeler -->
-                <span class="q-word">بِسْمِ</span>
-                <span class="q-word">اللَّهِ</span>
-                <span class="q-word">الرَّحْمَٰنِ</span>
-                <span class="q-word">الرَّحِيمِ</span>
-                <span class="verse-num">﴿١﴾</span>
-                <span class="q-word">الْحَمْدُ</span>
-                <span class="q-word">لِلَّهِ</span>
-                <span class="q-word">رَبِّ</span>
-                <span class="q-word">الْعَالَمِينَ</span>
-                <span class="verse-num">﴿٢﴾</span>
-                <span class="q-word">الرَّحْمَٰنِ</span>
-                <span class="q-word">الرَّحِيمِ</span>
-                <span class="verse-num">﴿٣﴾</span>
-                <span class="q-word">مَالِكِ</span>
-                <span class="q-word">يَوْمِ</span>
-                <span class="q-word">الدِّينِ</span>
-                <span class="verse-num">﴿٤﴾</span>
-            </div>
-
-            <div class="action-bar">
-                <button class="btn btn-start" id="toggleRevealBtn">
-                    <i class="fa-solid fa-eye"></i>
-                    إظهار / إخفاء الكل (Tümünü Göster / Gizle)
-                </button>
-            </div>
+            <h3>الكلمات الخاطئة أو المفقودة:</h3>
+            <ul id="errorList" class="error-list"></ul>
         </div>
-    </main>
+    </div>
+</div>
 
-    <script>
-        // Kelimelere tıklayınca açma/kapatma
-        document.querySelectorAll('.q-word').forEach(word => {
-            word.addEventListener('click', () => {
-                word.classList.toggle('revealed');
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let currentSurahText = "";
+
+    // Surah listesini API'den yükle
+    async function loadSurahs() {
+        try {
+            const res = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await res.json();
+            const select = document.getElementById('surahSelect');
+            select.innerHTML = '<option value="">-- اختر السورة --</option>';
+            data.data.forEach(surah => {
+                select.innerHTML += `<option value="${surah.number}">${surah.number}. سورة ${surah.name}</option>`;
             });
-        });
+        } catch (error) {
+            alert('حدث خطأ أثناء تحميل قائمة السور. يرجى إعادة التحميل.');
+        }
+    }
 
-        // Tümünü göster/gizle butonu
-        const toggleBtn = document.getElementById('toggleRevealBtn');
-        let isRevealed = false;
+    // Seçilen suranın metnini getir
+    async function loadSurahText() {
+        const surahNum = document.getElementById('surahSelect').value;
+        if (!surahNum) return;
 
-        toggleBtn.addEventListener('click', () => {
-            isRevealed = !isRevealed;
-            document.querySelectorAll('.q-word').forEach(word => {
-                if (isRevealed) {
-                    word.classList.add('revealed');
+        document.getElementById('quranText').innerText = 'جاري تحميل نص السورة المباركة...';
+
+        try {
+            const res = await fetch(`https://api.alquran.cloud/v1/surah/${surahNum}/quran-uthmani`);
+            const data = await res.json();
+            
+            // Ayet numaralarını özel parantezlerle ekle: ﴿١﴾
+            currentSurahText = data.data.ayahs.map(a => `${a.text} ﴿${a.numberInSurah}﴾`).join(' ');
+            document.getElementById('quranText').innerText = currentSurahText;
+            document.getElementById('startBtn').disabled = false;
+        } catch (error) {
+            alert('حدث خطأ أثناء تحميل نص السورة');
+            document.getElementById('quranText').innerText = 'خطأ في تحميل النص.';
+        }
+    }
+
+    // Ses kaydını başlat
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.start();
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('surahSelect').disabled = true;
+            document.getElementById('recordingStatus').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+        } catch (error) {
+            alert('يرجى السماح باستخدام الميكروفون للبدء في التسميع.');
+        }
+    }
+
+    // Ses kaydını bitir ve sunucuya ilet
+    async function stopRecording() {
+        mediaRecorder.stop();
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('recordingStatus').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'block';
+
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recitation.webm');
+            formData.append('originalText', currentSurahText);
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResults(result.data);
                 } else {
-                    word.classList.remove('revealed');
+                    alert('حدث خطأ أثناء تقييم التلاوة، يرجى المحاولة مرة أخرى.');
                 }
-            });
-        });
+            } catch (err) {
+                alert('فشل الاتصال بالخادم. تأكد من تشغيل السيرفر.');
+            } finally {
+                document.getElementById('loadingText').style.display = 'none';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('surahSelect').disabled = false;
+            }
+        };
+    }
 
-        // Sidebar sure seçimi
-        document.querySelectorAll('.surah-item').forEach(item => {
-            item.addEventListener('click', () => {
-                document.querySelectorAll('.surah-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
+    // Analiz sonuçlarını ekrana yazdır
+    function showResults(data) {
+        document.getElementById('scoreValue').innerText = `%${data.accuracy_percentage}`;
+        document.getElementById('feedbackText').innerText = data.feedback_ar;
+        
+        const errorList = document.getElementById('errorList');
+        errorList.innerHTML = '';
+        if (data.missing_or_wrong_words && data.missing_or_wrong_words.length > 0) {
+            data.missing_or_wrong_words.forEach(word => {
+                errorList.innerHTML += `<li>${word}</li>`;
             });
-        });
-    </script>
+        } else {
+            errorList.innerHTML = '<li style="color: #16a34a;">ما شاء الله! التلاوة ممتازة ولا توجد أخطاء واضحة.</li>';
+        }
+
+        document.getElementById('resultBox').style.display = 'block';
+    }
+
+    // Sayfa açıldığında suraları getir
+    loadSurahs();
+</script>
 </body>
 </html>
