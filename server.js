@@ -2,8 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const axios = require('axios');
 const path = require('path');
+const multer = require('multer');
+const FormData = require('form-data');
 
 const app = express();
+const upload = multer({ storage: multer.memoryStorage() });
 
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
@@ -49,7 +52,7 @@ function isSimilarWord(w1, w2) {
 }
 
 /**
- * DENGELİ YÜZDE HESAPLAMA MOTORU
+ * DENGELİ YÜZDE HESAPLAMA VE ANALİZ MOTORU
  */
 async function analyzeRecitation(originalText, transcribedText) {
     const cleanOrig = normalizeArabicText(originalText);
@@ -62,12 +65,10 @@ async function analyzeRecitation(originalText, transcribedText) {
         return { accuracy_percentage: 0, missing_or_wrong_words: [], feedback_ar: "لم يتم اكتشاف قراءة." };
     }
 
-    // Orijinal metindeki kelimelerin ne kadarı doğru seslendirildi?
     let matchedUniqueCount = 0;
     const missingOrWrong = [];
 
     origWords.forEach(origWord => {
-        // Okunan kelime havuzunda en az 1 kez geçiyorsa doğru say
         const isRead = transWords.some(transWord => isSimilarWord(origWord, transWord));
         if (isRead) {
             matchedUniqueCount++;
@@ -78,10 +79,8 @@ async function analyzeRecitation(originalText, transcribedText) {
         }
     });
 
-    // NET ORANSAL HESAP: (Eşleşen Kelime / Toplam Kelime) * 100
     let accuracyPercentage = Math.round((matchedUniqueCount / origWords.length) * 100);
     
-    // Ses girişi var ama eşleşme sıfırsa minimum taban
     if (transWords.length > 0 && accuracyPercentage === 0) {
         accuracyPercentage = 5;
     }
@@ -134,6 +133,59 @@ async function analyzeRecitation(originalText, transcribedText) {
     };
 }
 
+/**
+ * 1. Tarayıcıdan gelen ses kaydını (audio/webm) Groq Whisper ile Arapça yazıya çeviren endpoint
+ */
+app.post('/api/analyze', upload.single('audio'), async (req, res) => {
+    try {
+        const { originalText } = req.body;
+        const audioFile = req.file;
+
+        if (!originalText) {
+            return res.status(400).json({ success: false, message: 'النص الأصلي مطلوب.' });
+        }
+
+        if (!audioFile) {
+            return res.status(400).json({ success: false, message: 'ملف الصوت مطلوب.' });
+        }
+
+        let transcribedText = "";
+
+        // Eğer GROQ_API_KEY tanımlıysa Whisper modelini kullanarak sesi kusursuz şekilde metne döküyoruz (Tamamen Ücretsiz Tier)
+        if (process.env.GROQ_API_KEY) {
+            try {
+                const formData = new FormData();
+                formData.append('file', audioFile.buffer, { filename: 'recitation.webm', contentType: 'audio/webm' });
+                formData.append('model', 'whisper-large-v3');
+                formData.append('language', 'ar'); // Arapça odaklı tanıma
+
+                const transcriptionRes = await axios.post(
+                    'https://api.groq.com/openai/v1/audio/transcriptions',
+                    formData,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                            ...formData.getHeaders()
+                        },
+                        timeout: 10000
+                    }
+                );
+                transcribedText = transcriptionRes.data.text || "";
+            } catch (whisperErr) {
+                console.error("Whisper Hatası:", whisperErr.message);
+            }
+        }
+
+        const data = await analyzeRecitation(originalText, transcribedText);
+        return res.json({ success: true, data });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * 2. Doğrudan metin analizi yapmak isteyenler için alternatif endpoint
+ */
 app.post('/api/analyze-text', async (req, res) => {
     try {
         const { originalText, transcribedText } = req.body;
@@ -144,6 +196,7 @@ app.post('/api/analyze-text', async (req, res) => {
         const data = await analyzeRecitation(originalText, transcribedText || "");
         return res.json({ success: true, data });
     } catch (error) {
+    
         return res.status(500).json({ success: false, message: error.message });
     }
 });
