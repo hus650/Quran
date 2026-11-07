@@ -15,10 +15,10 @@
       gtag('config', 'G-BS0LYX8BTM');
     </script>
     
-    <link rel="preconnect" href="https://googleapis.com">
-    <link rel="preconnect" href="https://gstatic.com" crossorigin>
-    <link href="https://googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri+Quran&family=Amiri:wght@400;700&family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         :root {
@@ -46,7 +46,77 @@
             background-attachment: fixed;
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px 12px;
+            display: flex;
+        }
+
+        /* SABİT SOL SIDEBAR (TÜM SURELER) */
+        .kuran-sidebar-panel {
+            width: 280px;
+            height: 100vh;
+            background: #080c17;
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            right: 0; /* RTL düzeninde sağ tarafta sabit durur */
+            z-index: 100;
+        }
+
+        .sidebar-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(18, 26, 47, 0.6);
+            text-align: center;
+        }
+
+        .sidebar-panel-header h2 {
+            font-family: 'Amiri Quran', serif;
+            color: var(--gold-accent);
+            font-size: 24px;
+            font-weight: 400;
+        }
+
+        .sidebar-panel-body {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+        }
+
+        .surah-list {
+            list-style: none;
+        }
+
+        .surah-item {
+            padding: 12px 16px;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            background: rgba(18, 26, 47, 0.4);
+            border: 1px solid transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .surah-item:hover, .surah-item.active {
+            background: var(--gold-glow);
+            border-color: var(--gold-accent);
+            color: var(--gold-accent);
+        }
+
+        .surah-num {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* ANA UYGULAMA ALANI */
+        .main-wrapper {
+            margin-right: 280px; /* Sidebar kadar pay bırakır */
+            flex: 1;
+            padding: 40px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -54,12 +124,12 @@
 
         .app-container {
             width: 100%;
-            max-width: 950px;
+            max-width: 900px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 24px;
             padding: 32px 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(12px);
         }
 
@@ -75,58 +145,11 @@
             font-size: 14px;
             font-weight: 700;
             margin-bottom: 12px;
-            letter-spacing: 0.5px;
         }
         header h1 {
             font-size: 30px;
             color: var(--text-primary);
             font-weight: 700;
-            line-height: 1.3;
-        }
-
-        /* CONTROL GRID (MOBILE RESPONSIVE) */
-        .control-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        @media (max-width: 640px) {
-            .control-grid {
-                grid-template-columns: 1fr;
-            }
-            .app-container {
-                padding: 20px 14px;
-                border-radius: 18px;
-            }
-            header h1 { font-size: 24px; }
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 15px;
-            color: var(--text-secondary);
-            font-weight: 700;
-        }
-
-        select {
-            width: 100%;
-            padding: 14px 16px;
-            background: #0d1322;
-            border: 1px solid var(--border-color);
-            border-radius: 14px;
-            color: var(--text-primary);
-            font-family: 'Amiri', serif;
-            font-size: 18px;
-            outline: none;
-            transition: all 0.25s ease;
-        }
-
-        select:focus {
-            border-color: var(--gold-accent);
-            box-shadow: 0 0 0 3px var(--gold-glow);
         }
 
         /* QURAN DISPLAY CONTAINER */
@@ -139,27 +162,17 @@
             font-size: 28px;
             line-height: 2.7;
             text-align: justify;
-            max-height: 420px;
+            max-height: 450px;
             overflow-y: auto;
             margin-bottom: 24px;
-            scroll-behavior: smooth;
             word-spacing: 3px;
             box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
         }
 
-        @media (max-width: 640px) {
-            .quran-viewport {
-                font-size: 22px;
-                line-height: 2.4;
-                padding: 20px 14px;
-                max-height: 350px;
-            }
-        }
-
-        /* KELİME STİLLERİ */
+        /* KELİME STİLLERİ (GİZLİ/AÇIK) */
         .q-word {
             display: inline-block;
-            transition: filter 0.3s ease, opacity 0.3s ease, transform 0.2s ease;
+            transition: filter 0.3s ease, opacity 0.3s ease;
             filter: blur(9px);
             opacity: 0.12;
             user-select: none;
@@ -167,6 +180,7 @@
             border-radius: 6px;
             padding: 0 6px;
             margin: 0 2px;
+            cursor: pointer;
         }
 
         .q-word.revealed {
@@ -186,20 +200,15 @@
             opacity: 0.85;
         }
 
-        /* ACTION BUTTONS */
+        /* BOTON ALANI */
         .action-bar {
             display: flex;
             gap: 16px;
             justify-content: center;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
         }
 
         .btn {
-            flex: 1;
-            min-width: 200px;
-            padding: 16px 28px;
+            padding: 14px 28px;
             border-radius: 14px;
             font-family: 'Amiri', serif;
             font-size: 18px;
@@ -208,10 +217,8 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
             transition: all 0.25s ease;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
 
         .btn-start {
@@ -219,104 +226,115 @@
             color: #000;
         }
 
-        /* ==========================================================================
-           YENİ EKLENEN HAMBURGER MENÜ VE SIDEBAR STİLLERİ
-           ========================================================================== */
-        
-        /* Sol Üst Hamburger Butonu */
-        .kuran-menu-trigger {
-            position: fixed;
-            top: 24px;
-            left: 24px;
-            z-index: 9999;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--gold-accent);
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            transition: all 0.25s ease;
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(212, 163, 38, 0.3);
         }
 
-        .kuran-menu-trigger:hover {
-            border-color: var(--gold-accent);
-            box-shadow: 0 0 12px var(--gold-glow);
-            transform: scale(1.05);
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .kuran-sidebar-panel { width: 100%; height: 200px; position: relative; border-left: none; border-bottom: 1px solid var(--border-color); }
+            .main-wrapper { margin-right: 0; padding: 20px 10px; }
         }
+    </style>
+</head>
+<body>
 
-        /* Yan Panel (Sidebar) */
-        .kuran-sidebar-panel {
-            position: fixed;
-            top: 0;
-            left: -340px; /* Panel genişliği + gölge kadar solda gizli */
-            width: 320px;
-            height: 100vh;
-            background: #080c17;
-            border-right: 1px solid var(--border-color);
-            z-index: 10000;
-            transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.7);
-        }
+    <!-- SABİT KURAN SURE LİSTESİ SIDEBAR -->
+    <aside class="kuran-sidebar-panel">
+        <div class="sidebar-panel-header">
+            <h2>فهرس السور (Sureler)</h2>
+        </div>
+        <div class="sidebar-panel-body">
+            <ul class="surah-list" id="surahList">
+                <li class="surah-item active" data-surah="1">
+                    <span>الفاتحة</span>
+                    <span class="surah-num">١</span>
+                </li>
+                <li class="surah-item" data-surah="112">
+                    <span>الإخلاص</span>
+                    <span class="surah-num">١١٢</span>
+                </li>
+                <li class="surah-item" data-surah="113">
+                    <span>الفلق</span>
+                    <span class="surah-num">١١٣</span>
+                </li>
+                <li class="surah-item" data-surah="114">
+                    <span>الناس</span>
+                    <span class="surah-num">١١٤</span>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
-        .kuran-sidebar-panel.open {
-            left: 0;
-        }
+    <!-- ANA TASMIA OKUMA ALANI -->
+    <main class="main-wrapper">
+        <div class="app-container">
+            <header>
+                <span class="title-badge">التسميع التفاعلي</span>
+                <h1>منصة التسميع التفاعلي المباشر</h1>
+            </header>
 
-        /* Panel Başlık Alanı */
-        .sidebar-panel-header {
-            padding: 24px;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(18, 26, 47, 0.4);
-        }
+            <div class="quran-viewport" id="quranViewport">
+                <!-- Tıklanarak açılan kelimeler -->
+                <span class="q-word">بِسْمِ</span>
+                <span class="q-word">اللَّهِ</span>
+                <span class="q-word">الرَّحْمَٰنِ</span>
+                <span class="q-word">الرَّحِيمِ</span>
+                <span class="verse-num">﴿١﴾</span>
+                <span class="q-word">الْحَمْدُ</span>
+                <span class="q-word">لِلَّهِ</span>
+                <span class="q-word">رَبِّ</span>
+                <span class="q-word">الْعَالَمِينَ</span>
+                <span class="verse-num">﴿٢﴾</span>
+                <span class="q-word">الرَّحْمَٰنِ</span>
+                <span class="q-word">الرَّحِيمِ</span>
+                <span class="verse-num">﴿٣﴾</span>
+                <span class="q-word">مَالِكِ</span>
+                <span class="q-word">يَوْمِ</span>
+                <span class="q-word">الدِّينِ</span>
+                <span class="verse-num">﴿٤﴾</span>
+            </div>
 
-        .sidebar-panel-header h2 {
-            font-family: 'Amiri Quran', serif;
-            color: var(--gold-accent);
-            font-size: 26px;
-            font-weight: 400;
-            text-shadow: 0 0 10px var(--gold-glow);
-        }
+            <div class="action-bar">
+                <button class="btn btn-start" id="toggleRevealBtn">
+                    <i class="fa-solid fa-eye"></i>
+                    إظهار / إخفاء الكل (Tümünü Göster / Gizle)
+                </button>
+            </div>
+        </div>
+    </main>
 
-        /* Panel Kapatma Butonu */
-        .sidebar-panel-close {
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 22px;
-            cursor: pointer;
-            transition: color 0.2s ease;
-            padding: 4px;
-        }
+    <script>
+        // Kelimelere tıklayınca açma/kapatma
+        document.querySelectorAll('.q-word').forEach(word => {
+            word.addEventListener('click', () => {
+                word.classList.toggle('revealed');
+            });
+        });
 
-        .sidebar-panel-close:hover {
-            color: var(--danger);
-        }
+        // Tümünü göster/gizle butonu
+        const toggleBtn = document.getElementById('toggleRevealBtn');
+        let isRevealed = false;
 
-        /* Panel İçerik Alanı */
-        .sidebar-panel-body {
-            flex: 1;
-            padding: 24px;
-            overflow-y: auto;
-        }
+        toggleBtn.addEventListener('click', () => {
+            isRevealed = !isRevealed;
+            document.querySelectorAll('.q-word').forEach(word => {
+                if (isRevealed) {
+                    word.classList.add('revealed');
+                } else {
+                    word.classList.remove('revealed');
+                }
+            });
+        });
 
-        .sidebar-panel-body p {
-            color: var(--text-secondary);
-            font-size: 16px;
-            line-height: 1.6;
-        }
-
-        /* Karartma Katmanı (Overlay) */
-        .sidebar-panel-overlay {
-            position: fixed;
-            top: 0;
+        // Sidebar sure seçimi
+        document.querySelectorAll('.surah-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.surah-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
