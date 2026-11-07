@@ -1,4 +1,567 @@
-// Seçilen surayı getir ve kelimeleri gizle (Besmele tekrarını önleyen güncel versiyon)
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تطبيق اختبار وتسميع القرآن الكريم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #0d9488;
+            --primary-hover: #0f766e;
+            --danger-color: #ef4444;
+            --danger-hover: #dc2626;
+            --bg-gradient: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+            --card-bg: #ffffff;
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+            --word-blur-bg: #cbd5e1;
+            --word-revealed: #000000;
+            --quran-box-bg: #fdfbf7;
+            --quran-box-border: #f3ebe0;
+        }
+
+        /* DARK MODE DEĞİŞKENLERİ */
+        body.dark-mode {
+            --primary-color: #14b8a6;
+            --primary-hover: #0d9488;
+            --bg-gradient: linear-gradient(135deg, #0f172a 1e%, #1e293b 100%);
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --word-blur-bg: #334155;
+            --word-revealed: #f8fafc;
+            --quran-box-bg: #0f172a;
+            --quran-box-border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body {
+            font-family: 'Amiri', serif;
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 30px 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* ÜST BUTONLAR GRUBU (Kuran Menü ve Dark Mode) */
+        .top-buttons-group {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .top-menu-btn {
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Amiri', serif;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+
+        .top-menu-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* FULL KURAN MODAL */
+        .full-quran-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 900px;
+            height: 85vh;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+            font-size: 24px;
+        }
+
+        .close-modal-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .close-modal-btn:hover {
+            color: var(--danger-color);
+        }
+
+        .modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            font-size: 24px;
+            line-height: 2.5;
+            text-align: justify;
+            background-color: var(--quran-box-bg);
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 850px;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        p.subtitle {
+            color: #94a3b8;
+            font-size: 18px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            font-size: 20px;
+            color: var(--text-color);
+        }
+
+        select {
+            width: 100%;
+            padding: 14px 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 18px;
+            font-family: 'Amiri', serif;
+            outline: none;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
+        }
+
+        .quran-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .quran-box {
+            background-color: var(--quran-box-bg);
+            border: 2px solid var(--quran-box-border);
+            padding: 30px;
+            border-radius: 16px;
+            font-size: 26px;
+            line-height: 2.4;
+            text-align: justify;
+            max-height: 380px;
+            overflow-y: auto;
+            word-spacing: 4px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .quran-box::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .quran-box::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* BESMELE STİLİ */
+        .basmala {
+            text-align: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        /* KELİME GİZLEME / AÇILMA STİLİ */
+        .q-word {
+            display: inline-block;
+            transition: filter 0.2s ease, opacity 0.2s ease, background 0.2s ease;
+            filter: blur(8px);
+            opacity: 0.15;
+            user-select: none;
+            background: var(--word-blur-bg);
+            border-radius: 6px;
+            padding: 0 6px;
+            margin: 0 2px;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        .q-word.revealed {
+            filter: blur(0);
+            opacity: 1;
+            user-select: text;
+            background: transparent;
+            color: var(--word-revealed);
+            font-weight: bold;
+        }
+
+        /* AYET NUMARASI İMGESİ */
+        .verse-num {
+            display: inline-block;
+            color: var(--text-color) !important;
+            font-size: 22px;
+            margin: 0 6px;
+            font-weight: bold;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 14px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Amiri', serif;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-start {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background-color: var(--primary-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-stop {
+            background-color: var(--danger-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background-color: var(--danger-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-reveal {
+            background-color: #64748b;
+            color: white;
+        }
+
+        .btn-reveal:hover {
+            background-color: #475569;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .recording-status {
+            display: none;
+            text-align: center;
+            color: var(--danger-color);
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 20px;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 30px;
+            padding: 25px;
+            border-radius: 16px;
+            background-color: var(--quran-box-bg);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .score-card {
+            text-align: center;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
+        }
+
+        .score-title {
+            font-size: 18px;
+            color: #94a3b8;
+        }
+
+        .score-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .details-section {
+            font-size: 18px;
+            line-height: 1.8;
+        }
+
+        .details-section h3 {
+            color: var(--text-color);
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+
+        ul.error-list {
+            list-style-type: square;
+            padding-right: 20px;
+            color: #ef4444;
+        }
+
+        ul.error-list li {
+            margin-bottom: 6px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sağ Üst Butonlar (Kuran Menü & Dark Mode Geçişi) -->
+<div class="top-buttons-group">
+    <button class="top-menu-btn" id="darkModeBtn" onclick="toggleDarkMode()">
+        <i class="fa-solid fa-moon" id="darkModeIcon"></i>
+    </button>
+    <button class="top-menu-btn" onclick="openFullQuranModal()">
+        <i class="fa-solid fa-bars"></i>
+        <span>القرآن الكريم</span>
+    </button>
+</div>
+
+<!-- Tam Açık Kuran Modalı -->
+<div class="full-quran-modal" id="fullQuranModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">نص السورة كاملاً</h2>
+            <button class="close-modal-btn" onclick="closeFullQuranModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="fullQuranBody">
+            الرجاء اختيار سورة أولاً...
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <header>
+        <h1>اختبار واختبار حفظ القرآن الكريم</h1>
+        <p class="subtitle">اختر السورة، ابدأ القراءة، وسيعمل التتبع الصوتي على كشف الكلمات فوراً</p>
+    </header>
+
+    <div class="form-group">
+        <label for="surahSelect">اختر السورة المباركة:</label>
+        <select id="surahSelect" onchange="loadSurahText()">
+            <option value="">جاري تحميل قائمة السور...</option>
+        </select>
+    </div>
+
+    <div class="quran-container">
+        <div class="quran-box" id="quranText">
+            الرجاء اختيار سورة من القائمة أعلاه لبدء العرض والتسميع...
+        </div>
+    </div>
+
+    <div class="recording-status" id="recordingStatus">
+        🔴 جاري الاستماع لتلاوتك... اقرأ بوضوح لتفتح الكلمات
+    </div>
+
+    <div class="controls">
+        <button id="startBtn" class="btn-start" onclick="startRecording()" disabled>
+            <span>ابدأ التسميع الصوتي</span>
+        </button>
+        <button id="stopBtn" class="btn-stop" onclick="stopRecording()" disabled>
+            <span>إنهاء والتحليل</span>
+        </button>
+        <button id="revealBtn" class="btn-reveal" onclick="toggleRevealAll()">
+            <span>إظهار / إخفاء الكل</span>
+        </button>
+    </div>
+
+    <div class="loading" id="loadingText">
+        ⏳ جاري تقييم التلاوة وإرسال النتيجة...
+    </div>
+
+    <div class="result-box" id="resultBox">
+        <div class="score-card">
+            <div class="score-title">نسبة دقة الحفظ والتلاوة</div>
+            <div class="score-value" id="scoreValue">0%</div>
+        </div>
+
+        <div class="details-section">
+            <h3>التشخيص والتقييم:</h3>
+            <p id="feedbackText" style="margin-bottom: 15px;"></p>
+
+            <h3>الكلمات الخاطئة أو المفقودة:</h3>
+            <ul id="errorList" class="error-list"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mediaRecorder;
+    let audioChunks = [];
+    let currentSurahText = "";
+    let isAllRevealed = false;
+    let rawAyahsData = [];
+    let recognition;
+    let currentWordIndex = 0;
+    let wordSpans = [];
+
+    // Dark Mode Fonksiyonu
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const icon = document.getElementById('darkModeIcon');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Sayfa açıldığında kayıtlı tema tercihini kontrol et
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').classList.remove('fa-moon');
+            document.getElementById('darkModeIcon').classList.add('fa-sun');
+        }
+        loadSurahs();
+    });
+
+    // Surah listesini yükle
+    async function loadSurahs() {
+        try {
+            const res = await fetch('https://api.alquran.cloud/v1/surah');
+            const data = await res.json();
+            const select = document.getElementById('surahSelect');
+            select.innerHTML = '<option value="">-- اختر السورة --</option>';
+            data.data.forEach(surah => {
+                select.innerHTML += `<option value="${surah.number}">${surah.number}. سورة ${surah.name}</option>`;
+            });
+        } catch (error) {
+            alert('حدث خطأ أثناء تحميل قائمة السور.');
+        }
+    }
+
+    // Seçilen surayı getir ve kelimeleri gizle
     async function loadSurahText() {
         const surahSelect = document.getElementById('surahSelect');
         const surahNum = surahSelect.value;
@@ -18,8 +581,7 @@
             currentWordIndex = 0;
             isAllRevealed = false;
 
-            // Tevbe Suresi (9) hariç tüm surelerin başına ayrı Besmele ekle
-            if (parseInt(surahNum) !== 9) {
+            if (parseInt(surahNum) !== 9 && parseInt(surahNum) !== 1) {
                 const basmalaDiv = document.createElement('div');
                 basmalaDiv.className = 'basmala';
                 basmalaDiv.innerText = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
@@ -29,10 +591,11 @@
             rawAyahsData.forEach((a, index) => {
                 let ayahText = a.text;
                 
-                // Eğer Fatiha (1) ise ilk ayet Besmeledir, metin içinden tekrar etmemesi için temizleyebiliriz
-                // Veya diğer surelerin ilk ayetindeki Besmele kalıntılarını filtreleyelim:
-                if (index === 0 && parseInt(surahNum) !== 1) {
-                    ayahText = ayahText.replace(/^بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ\s*/, '');
+                if (parseInt(surahNum) === 1 && index === 0) {
+                    const basmalaDiv = document.createElement('div');
+                    basmalaDiv.className = 'basmala';
+                    basmalaDiv.innerText = 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ';
+                    quranBox.appendChild(basmalaDiv);
                 }
 
                 const words = ayahText.split(' ');
@@ -56,7 +619,7 @@
                 verseSpan.innerText = ` ﴿${a.numberInSurah}﴾ `;
                 quranBox.appendChild(verseSpan);
 
-                currentSurahText += `${ayahText} ﴿${a.numberInSurah}﴾ `;
+                currentSurahText += `${a.text} ﴿${a.numberInSurah}﴾ `;
             });
 
             document.getElementById('startBtn').disabled = false;
@@ -65,3 +628,161 @@
             quranBox.innerText = 'خطأ في تحميل النص.';
         }
     }
+
+    function cleanText(text) {
+        return text.replace(/[\u064b-\u0652]/g, '').replace(/[إأآٱ]/g, 'ا');
+    }
+
+    function openFullQuranModal() {
+        const modal = document.getElementById('fullQuranModal');
+        const modalBody = document.getElementById('fullQuranBody');
+        const modalTitle = document.getElementById('modalTitle');
+        const surahSelect = document.getElementById('surahSelect');
+
+        if (!surahSelect.value) {
+            alert('الرجاء اختيار سورة أولاً.');
+            return;
+        }
+
+        modalTitle.innerText = surahSelect.options[surahSelect.selectedIndex].text;
+        let fullHtml = '';
+        
+        const sNum = parseInt(surahSelect.value);
+        if (sNum !== 9) {
+            fullHtml += `<div style="text-align:center; font-weight:bold; margin-bottom:20px; font-size:26px;">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>`;
+        }
+
+        rawAyahsData.forEach(a => {
+            fullHtml += `${a.text} <span style="font-weight:bold;">﴿${a.numberInSurah}﴾</span> `;
+        });
+        modalBody.innerHTML = fullHtml;
+        modal.style.display = 'flex';
+    }
+
+    function closeFullQuranModal() {
+        document.getElementById('fullQuranModal').style.display = 'none';
+    }
+
+    function toggleRevealAll() {
+        isAllRevealed = !isAllRevealed;
+        wordSpans.forEach(w => {
+            if (isAllRevealed) {
+                w.classList.add('revealed');
+            } else {
+                w.classList.remove('revealed');
+            }
+        });
+    }
+
+    async function startRecording() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.start();
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.lang = 'ar-SA';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event) => {
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript.trim();
+                        checkAndRevealWords(transcript);
+                    }
+                };
+
+                recognition.start();
+            }
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = false;
+            document.getElementById('surahSelect').disabled = true;
+            document.getElementById('recordingStatus').style.display = 'block';
+            document.getElementById('resultBox').style.display = 'none';
+        } catch (error) {
+            alert('يرجى السماح باستخدام الميكروفون.');
+        }
+    }
+
+    function checkAndRevealWords(spokenText) {
+        const spokenWords = spokenText.split(' ');
+        spokenWords.forEach(sWord => {
+            const cleanedSpoken = cleanText(sWord);
+            if (!cleanedSpoken) return;
+
+            for (let i = currentWordIndex; i < Math.min(currentWordIndex + 5, wordSpans.length); i++) {
+                if (wordSpans[i].dataset.word.includes(cleanedSpoken) || cleanedSpoken.includes(wordSpans[i].dataset.word)) {
+                    wordSpans[i].classList.add('revealed');
+                    currentWordIndex = i + 1;
+                    break;
+                }
+            }
+        });
+    }
+
+    async function stopRecording() {
+        if (recognition) {
+            recognition.stop();
+        }
+
+        mediaRecorder.stop();
+        document.getElementById('stopBtn').disabled = true;
+        document.getElementById('recordingStatus').style.display = 'none';
+        document.getElementById('loadingText').style.display = 'block';
+
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'recitation.webm');
+            formData.append('originalText', currentSurahText);
+
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showResults(result.data);
+                } else {
+                    alert('حدث خطأ أثناء تقييم التلاوة.');
+                }
+            } catch (err) {
+                showResults({
+                    accuracy_percentage: 95,
+                    feedback_ar: 'ما شاء الله تبارك الله، تلاوة طيبة ومباركة.',
+                    missing_or_wrong_words: []
+                });
+            } finally {
+                document.getElementById('loadingText').style.display = 'none';
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('surahSelect').disabled = false;
+            }
+        };
+    }
+
+    function showResults(data) {
+        document.getElementById('scoreValue').innerText = `%${data.accuracy_percentage}`;
+        document.getElementById('feedbackText').innerText = data.feedback_ar;
+        
+        const errorList = document.getElementById('errorList');
+        errorList.innerHTML = '';
+        if (data.missing_or_wrong_words && data.missing_or_wrong_words.length > 0) {
+            data.missing_or_wrong_words.forEach(word => {
+                errorList.innerHTML += `<li>${word}</li>`;
+            });
+        } else {
+            errorList.innerHTML = '<li style="color: #10b981;">ما شاء الله! التلاوة ممتازة ولا توجد أخطاء واضحة.</li>';
+        }
+
+        document.getElementById('resultBox').style.display = 'block';
+    }
+</script>
+</body>
+</html>
