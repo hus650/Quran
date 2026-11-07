@@ -20,13 +20,30 @@
             --text-color: #1f2937;
             --border-color: #e5e7eb;
             --word-blur-bg: #cbd5e1;
-            --word-revealed: #000000; /* Açılan yazı siyah */
+            --word-revealed: #000000;
+            --quran-box-bg: #fdfbf7;
+            --quran-box-border: #f3ebe0;
+        }
+
+        /* DARK MODE DEĞİŞKENLERİ */
+        body.dark-mode {
+            --primary-color: #14b8a6;
+            --primary-hover: #0d9488;
+            --bg-gradient: linear-gradient(135deg, #0f172a 1e%, #1e293b 100%);
+            --card-bg: #1e293b;
+            --text-color: #f8fafc;
+            --border-color: #334155;
+            --word-blur-bg: #334155;
+            --word-revealed: #f8fafc;
+            --quran-box-bg: #0f172a;
+            --quran-box-border: #334155;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         body {
@@ -41,11 +58,17 @@
             position: relative;
         }
 
-        /* SAĞ ÜST KÖŞE MENÜ BUTONU */
-        .top-menu-btn {
+        /* ÜST BUTONLAR GRUBU (Kuran Menü ve Dark Mode) */
+        .top-buttons-group {
             position: fixed;
             top: 20px;
             right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .top-menu-btn {
             background: var(--card-bg);
             border: 2px solid var(--border-color);
             border-radius: 12px;
@@ -59,12 +82,10 @@
             font-weight: bold;
             color: var(--primary-color);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            z-index: 1000;
             transition: all 0.3s ease;
         }
 
         .top-menu-btn:hover {
-            background-color: #f8fafc;
             border-color: var(--primary-color);
         }
 
@@ -85,7 +106,7 @@
         }
 
         .modal-content {
-            background: #ffffff;
+            background: var(--card-bg);
             width: 100%;
             max-width: 900px;
             height: 85vh;
@@ -94,11 +115,11 @@
             flex-direction: column;
             overflow: hidden;
             box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            border: 1px solid var(--border-color);
         }
 
         .modal-header {
             padding: 20px 25px;
-            background: #f8fafc;
             border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
@@ -115,7 +136,7 @@
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #6b7280;
+            color: var(--text-color);
         }
 
         .close-modal-btn:hover {
@@ -128,8 +149,8 @@
             font-size: 24px;
             line-height: 2.5;
             text-align: justify;
-            background-color: #fdfbf7;
-            color: #000000;
+            background-color: var(--quran-box-bg);
+            color: var(--text-color);
         }
 
         .container {
@@ -139,7 +160,7 @@
             padding: 40px;
             border-radius: 24px;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.6);
+            border: 1px solid var(--border-color);
         }
 
         header {
@@ -155,7 +176,7 @@
         }
 
         p.subtitle {
-            color: #6b7280;
+            color: #94a3b8;
             font-size: 18px;
         }
 
@@ -168,7 +189,7 @@
             margin-bottom: 10px;
             font-weight: bold;
             font-size: 20px;
-            color: #374151;
+            color: var(--text-color);
         }
 
         select {
@@ -179,7 +200,8 @@
             font-size: 18px;
             font-family: 'Amiri', serif;
             outline: none;
-            background-color: #fff;
+            background-color: var(--card-bg);
+            color: var(--text-color);
             transition: all 0.3s ease;
             cursor: pointer;
         }
@@ -195,8 +217,8 @@
         }
 
         .quran-box {
-            background-color: #fdfbf7;
-            border: 2px solid #f3ebe0;
+            background-color: var(--quran-box-bg);
+            border: 2px solid var(--quran-box-border);
             padding: 30px;
             border-radius: 16px;
             font-size: 26px;
@@ -217,18 +239,18 @@
             border-radius: 4px;
         }
 
-        /* BESMELE STİLİ (Ayrı ve Üstte) */
+        /* BESMELE STİLİ */
         .basmala {
             text-align: center;
             font-size: 28px;
             font-weight: bold;
-            color: #000000;
+            color: var(--text-color);
             margin-bottom: 25px;
             padding-bottom: 15px;
-            border-bottom: 1px dashed #d1d5db;
+            border-bottom: 1px dashed var(--border-color);
         }
 
-        /* KELİME GİZLEME / ANLIK AÇILMA STİLİ */
+        /* KELİME GİZLEME / AÇILMA STİLİ */
         .q-word {
             display: inline-block;
             transition: filter 0.2s ease, opacity 0.2s ease, background 0.2s ease;
@@ -240,7 +262,7 @@
             padding: 0 6px;
             margin: 0 2px;
             cursor: pointer;
-            color: #000000;
+            color: var(--text-color);
         }
 
         .q-word.revealed {
@@ -252,10 +274,10 @@
             font-weight: bold;
         }
 
-        /* AYET NUMARASI İMGESİ (SİYAH) */
+        /* AYET NUMARASI İMGESİ */
         .verse-num {
             display: inline-block;
-            color: #000000 !important;
+            color: var(--text-color) !important;
             font-size: 22px;
             margin: 0 6px;
             font-weight: bold;
@@ -307,12 +329,12 @@
         }
 
         .btn-reveal {
-            background-color: #6b7280;
+            background-color: #64748b;
             color: white;
         }
 
         .btn-reveal:hover {
-            background-color: #4b5563;
+            background-color: #475569;
         }
 
         button:disabled {
@@ -352,7 +374,7 @@
             margin-top: 30px;
             padding: 25px;
             border-radius: 16px;
-            background-color: #f8fafc;
+            background-color: var(--quran-box-bg);
             border: 1px solid var(--border-color);
             animation: fadeIn 0.5s ease-in-out;
         }
@@ -365,15 +387,16 @@
         .score-card {
             text-align: center;
             padding: 15px;
-            background: #ffffff;
+            background: var(--card-bg);
             border-radius: 12px;
             margin-bottom: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--border-color);
         }
 
         .score-title {
             font-size: 18px;
-            color: #6b7280;
+            color: #94a3b8;
         }
 
         .score-value {
@@ -388,16 +411,16 @@
         }
 
         .details-section h3 {
-            color: #374151;
+            color: var(--text-color);
             margin-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 2px solid var(--border-color);
             padding-bottom: 5px;
         }
 
         ul.error-list {
             list-style-type: square;
             padding-right: 20px;
-            color: #b91c1c;
+            color: #ef4444;
         }
 
         ul.error-list li {
@@ -407,11 +430,16 @@
 </head>
 <body>
 
-<!-- Sağ Üst Kuran Menü Butonu -->
-<button class="top-menu-btn" onclick="openFullQuranModal()">
-    <i class="fa-solid fa-bars"></i>
-    <span>القرآن الكريم</span>
-</button>
+<!-- Sağ Üst Butonlar (Kuran Menü & Dark Mode Geçişi) -->
+<div class="top-buttons-group">
+    <button class="top-menu-btn" id="darkModeBtn" onclick="toggleDarkMode()">
+        <i class="fa-solid fa-moon" id="darkModeIcon"></i>
+    </button>
+    <button class="top-menu-btn" onclick="openFullQuranModal()">
+        <i class="fa-solid fa-bars"></i>
+        <span>القرآن الكريم</span>
+    </button>
+</div>
 
 <!-- Tam Açık Kuran Modalı -->
 <div class="full-quran-modal" id="fullQuranModal">
@@ -475,7 +503,7 @@
 
         <div class="details-section">
             <h3>التشخيص والتقييم:</h3>
-            <p id="feedbackText" style="margin-bottom: 15px; color: #4b5563;"></p>
+            <p id="feedbackText" style="margin-bottom: 15px;"></p>
 
             <h3>الكلمات الخاطئة أو المفقودة:</h3>
             <ul id="errorList" class="error-list"></ul>
@@ -492,6 +520,31 @@
     let recognition;
     let currentWordIndex = 0;
     let wordSpans = [];
+
+    // Dark Mode Fonksiyonu
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+        const icon = document.getElementById('darkModeIcon');
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.remove('fa-moon');
+            icon.classList.add('fa-sun');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // Sayfa açıldığında kayıtlı tema tercihini kontrol et
+    window.addEventListener('DOMContentLoaded', () => {
+        if (localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').classList.remove('fa-moon');
+            document.getElementById('darkModeIcon').classList.add('fa-sun');
+        }
+        loadSurahs();
+    });
 
     // Surah listesini yükle
     async function loadSurahs() {
@@ -528,7 +581,6 @@
             currentWordIndex = 0;
             isAllRevealed = false;
 
-            // Tevbe Suresi (9) hariç tüm surelerin başına Besmele eklenir
             if (parseInt(surahNum) !== 9 && parseInt(surahNum) !== 1) {
                 const basmalaDiv = document.createElement('div');
                 basmalaDiv.className = 'basmala';
@@ -539,8 +591,6 @@
             rawAyahsData.forEach((a, index) => {
                 let ayahText = a.text;
                 
-                // Eğer Fatiha (1) veya diğer sureler ise ilk ayetteki besmeleyi API metninden ayırıp yukarı alabiliriz veya standart bırakabiliriz
-                // Fatiha için 1. ayet zaten Besmeledir:
                 if (parseInt(surahNum) === 1 && index === 0) {
                     const basmalaDiv = document.createElement('div');
                     basmalaDiv.className = 'basmala';
@@ -550,7 +600,6 @@
 
                 const words = ayahText.split(' ');
                 words.forEach(w => {
-                    // Eğer metinde geçen besmele kelimelerini atlamak istersek kontrol edebiliriz, doğrudan kelimeleri basıyoruz:
                     if (w.trim() !== '') {
                         const wordSpan = document.createElement('span');
                         wordSpan.className = 'q-word';
@@ -580,12 +629,10 @@
         }
     }
 
-    // Harf temizleme yardımcı fonksiyonu (Arapça hareke temizliği için)
     function cleanText(text) {
         return text.replace(/[\u064b-\u0652]/g, '').replace(/[إأآٱ]/g, 'ا');
     }
 
-    // Modal aç / kapat
     function openFullQuranModal() {
         const modal = document.getElementById('fullQuranModal');
         const modalBody = document.getElementById('fullQuranBody');
@@ -606,7 +653,7 @@
         }
 
         rawAyahsData.forEach(a => {
-            fullHtml += `${a.text} <span style="color: #000000; font-weight:bold;">﴿${a.numberInSurah}﴾</span> `;
+            fullHtml += `${a.text} <span style="font-weight:bold;">﴿${a.numberInSurah}﴾</span> `;
         });
         modalBody.innerHTML = fullHtml;
         modal.style.display = 'flex';
@@ -616,7 +663,6 @@
         document.getElementById('fullQuranModal').style.display = 'none';
     }
 
-    // Tümünü Göster / Gizle
     function toggleRevealAll() {
         isAllRevealed = !isAllRevealed;
         wordSpans.forEach(w => {
@@ -628,7 +674,6 @@
         });
     }
 
-    // Sesli okuma ve anlık tanıma başlatma
     async function startRecording() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -664,7 +709,6 @@
         }
     }
 
-    // Söylenen kelimeleri metinle eşleştirip anında açma fonksiyonu
     function checkAndRevealWords(spokenText) {
         const spokenWords = spokenText.split(' ');
         spokenWords.forEach(sWord => {
@@ -681,7 +725,6 @@
         });
     }
 
-    // Kaydı durdur ve analize gönder
     async function stopRecording() {
         if (recognition) {
             recognition.stop();
@@ -735,13 +778,11 @@
                 errorList.innerHTML += `<li>${word}</li>`;
             });
         } else {
-            errorList.innerHTML = '<li style="color: #16a34a;">ما شاء الله! التلاوة ممتازة ولا توجد أخطاء واضحة.</li>';
+            errorList.innerHTML = '<li style="color: #10b981;">ما شاء الله! التلاوة ممتازة ولا توجد أخطاء واضحة.</li>';
         }
 
         document.getElementById('resultBox').style.display = 'block';
     }
-
-    loadSurahs();
 </script>
 </body>
 </html>
